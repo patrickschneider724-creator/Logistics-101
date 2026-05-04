@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistics 101</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #002496;
+    --yellow: #FECB00;
+    --white: #FFFFFF;
+    --blue: #0073CF;
+    --amber: #EF9C35;
+    --gray: #646469;
+    --dark: #08101f;
+    --dark2: #0d1a33;
+    --dark3: #132040;
+    --dark4: #1a2a4a;
+    --muted: #6b7a99;
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.04);
+    --glass: rgba(255,255,255,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--dark);
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SCREEN SYSTEM ── */
+  .screen {
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+    overflow-y: auto;
+  }
+  .screen.active { opacity: 1; pointer-events: all; }
+
+  /* ── NAV BAR ── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 56px; z-index: 100;
+    display: flex; align-items: center; padding: 0 32px;
+    background: rgba(8,16,31,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: #fff; letter-spacing: -0.5px;
+    cursor: pointer;
+  }
+  .nav-logo span { color: var(--yellow); }
+  .nav-breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .nav-breadcrumb .sep { opacity: 0.4; }
+  .nav-breadcrumb .current { color: #fff; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .nav-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .nav-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── HOME SCREEN ── */
+  #home {
+    background: var(--dark);
+    padding-top: 56px;
+  }
+  .home-hero {
+    padding: 80px 48px 60px;
+    background: linear-gradient(160deg, #001a5c 0%, var(--dark) 60%);
+    position: relative; overflow: hidden;
+  }
+  .home-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 60% 50%, rgba(0,115,207,0.12) 0%, transparent 70%);
+  }
+  .home-hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(254,203,0,0.12); border: 1px solid rgba(254,203,0,0.3);
+    color: var(--yellow); padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 24px;
+  }
+  .home-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(32px, 5vw, 56px); font-weight: 700;
+    line-height: 1.1; letter-spacing: -1px;
+    max-width: 720px; margin-bottom: 20px;
+  }
+  .home-hero h1 em { color: var(--yellow); font-style: normal; }
+  .home-hero p {
+    font-size: 17px; color: var(--muted); max-width: 540px;
+    line-height: 1.65; margin-bottom: 40px;
+  }
+  .hero-stats {
+    display: flex; gap: 40px; flex-wrap: wrap; margin-bottom: 48px;
+  }
+  .hero-stat { }
+  .hero-stat .val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px; font-weight: 700; color: #fff;
+  }
+  .hero-stat .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .home-section-label {
+    padding: 0 48px; margin-bottom: 24px;
+  }
+  .home-section-label h2 {
+    font-size: 13px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px; padding: 0 48px 80px;
+  }
+  .product-card {
+    background: var(--dark2);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+    cursor: pointer; transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .product-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent);
+    border-radius: 16px 16px 0 0;
+  }
+  .product-card:hover {
+    border-color: var(--accent-dim);
+    background: var(--dark3);
+    transform: translateY(-2px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  }
+  .product-card .card-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: var(--accent-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 20px;
+  }
+  .product-card .card-tag {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .product-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px; font-weight: 700; margin-bottom: 12px;
+    line-height: 1.2;
+  }
+  .product-card p {
+    font-size: 14px; color: var(--muted); line-height: 1.6;
+    margin-bottom: 24px;
+  }
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-cta {
+    font-size: 13px; font-weight: 600; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-badge {
+    font-size: 11px; color: var(--muted);
+    background: var(--card); padding: 4px 10px; border-radius: 10px;
+  }
+
+  /* ── PRODUCT LANDING PAGE ── */
+  #product-page { padding-top: 56px; background: var(--dark); }
+  .product-hero {
+    padding: 64px 48px 48px;
+    background: linear-gradient(160deg, var(--hero-bg, #001a5c) 0%, var(--dark) 70%);
+    position: relative; overflow: hidden;
+  }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--muted); font-size: 13px; cursor: pointer;
+    margin-bottom: 32px; transition: color 0.2s;
+    background: none; border: none; font-family: 'Inter', sans-serif;
+  }
+  .back-btn:hover { color: #fff; }
+  .product-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent-bg2); border: 1px solid var(--accent-dim);
+    color: var(--accent); padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; margin-bottom: 20px;
+  }
+  .product-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(28px, 4vw, 44px); font-weight: 700;
+    letter-spacing: -0.5px; max-width: 640px;
+    margin-bottom: 16px; line-height: 1.15;
+  }
+  .product-hero .subtitle {
+    font-size: 17px; color: var(--muted); max-width: 560px; line-height: 1.65;
+  }
+
+  .product-content {
+    display: grid; grid-template-columns: 1fr 380px;
+    gap: 32px; padding: 40px 48px 32px; align-items: start;
+  }
+  @media(max-width:900px){
+    .product-content { grid-template-columns: 1fr; }
+  }
+
+  .product-overview {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+  }
+  .product-overview h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; font-weight: 700; margin-bottom: 16px;
+    color: var(--accent);
+  }
+  .product-overview p {
+    font-size: 15px; color: #cdd5e8; line-height: 1.75; margin-bottom: 16px;
+  }
+  .key-points { list-style: none; margin-top: 20px; }
+  .key-points li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; color: #cdd5e8; padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .key-points li:last-child { border-bottom: none; }
+  .key-points .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin-top: 6px; flex-shrink: 0;
+  }
+
+  .product-sidebar {}
+  .stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 16px;
+  }
+  .stat-card .val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px; font-weight: 700; color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .stat-card .lbl { font-size: 12px; color: var(--muted); }
+
+  .sim-cta-box {
+    background: linear-gradient(135deg, var(--navy) 0%, #0d1a6e 100%);
+    border: 1px solid rgba(254,203,0,0.2);
+    border-radius: 16px; padding: 28px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .sim-cta-box::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(254,203,0,0.1) 0%, transparent 70%);
+  }
+  .sim-cta-box h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; font-weight: 700; margin-bottom: 10px;
+  }
+  .sim-cta-box p { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .btn-primary {
+    background: var(--yellow); color: #111;
+    border: none; padding: 14px 28px; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s; width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary:hover { background: #ffe033; transform: translateY(-1px); }
+
+  .industries-list {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-top: 12px;
+  }
+  .industries-list h4 { font-size: 12px; font-weight: 600; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+  .industry-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .industry-tag {
+    background: var(--card); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 8px; font-size: 12px; color: #aab;
+  }
+
+  /* ── SIMULATION SCREEN ── */
+  #sim-screen {
+    padding-top: 56px; background: var(--dark);
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+  .sim-topbar {
+    background: var(--dark2); border-bottom: 1px solid var(--border);
+    padding: 16px 48px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .sim-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 600;
+  }
+  .sim-progress-wrap { flex: 1; display: flex; align-items: center; gap: 12px; }
+  .sim-progress-bar {
+    flex: 1; height: 4px; background: var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+  .sim-progress-fill {
+    height: 100%; background: var(--yellow);
+    border-radius: 4px; transition: width 0.5s ease;
+  }
+  .sim-step-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .sim-body {
+    flex: 1; display: flex; gap: 0;
+  }
+  .sim-main {
+    flex: 1; padding: 40px 48px;
+    overflow-y: auto; max-height: calc(100vh - 56px - 64px);
+  }
+  .sim-aside {
+    width: 300px; padding: 32px 24px;
+    border-left: 1px solid var(--border);
+    background: var(--dark2);
+    overflow-y: auto; max-height: calc(100vh - 56px - 64px);
+    flex-shrink: 0;
+  }
+
+  .scene-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(254,203,0,0.1); border: 1px solid rgba(254,203,0,0.25);
+    color: var(--yellow); padding: 5px 12px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; margin-bottom: 16px;
+  }
+  .scene-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(20px, 3vw, 28px); font-weight: 700;
+    line-height: 1.2; margin-bottom: 20px;
+  }
+  .scene-narrative {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 12px 12px 0; padding: 24px 28px;
+    font-size: 15px; line-height: 1.8; color: #cdd5e8;
+    margin-bottom: 32px;
+  }
+  .scene-narrative strong { color: #fff; }
+
+  .choices-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
+  .choices { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+  .choice-btn {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 22px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: flex-start; gap: 16px;
+    text-align: left; font-family: 'Inter', sans-serif; width: 100%;
+  }
+  .choice-btn:hover {
+    border-color: var(--accent-dim);
+    background: var(--dark3);
+  }
+  .choice-btn.selected {
+    border-color: var(--accent);
+    background: var(--dark3);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .choice-key {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--accent-bg); color: var(--accent);
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .choice-text { flex: 1; }
+  .choice-text strong {
+    display: block; font-size: 14px; font-weight: 600; color: #fff;
+    margin-bottom: 4px;
+  }
+  .choice-text span { font-size: 13px; color: var(--muted); }
+  .choice-risk {
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border-radius: 6px; flex-shrink: 0; margin-top: 2px;
+  }
+  .risk-low { background: rgba(0,180,100,0.15); color: #0bc472; }
+  .risk-med { background: rgba(239,156,53,0.15); color: var(--amber); }
+  .risk-high { background: rgba(220,50,50,0.15); color: #f06060; }
+
+  .outcome-card {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; margin-bottom: 28px;
+    display: none;
+  }
+  .outcome-card.show { display: block; animation: fadeUp 0.4s ease; }
+  .outcome-icon { font-size: 32px; margin-bottom: 12px; }
+  .outcome-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; font-weight: 700; margin-bottom: 10px;
+  }
+  .outcome-title.good { color: #0bc472; }
+  .outcome-title.ok { color: var(--amber); }
+  .outcome-title.bad { color: #f06060; }
+  .outcome-text { font-size: 14px; color: #cdd5e8; line-height: 1.7; margin-bottom: 16px; }
+  .outcome-lesson {
+    background: rgba(254,203,0,0.08); border: 1px solid rgba(254,203,0,0.2);
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 13px; color: var(--yellow); line-height: 1.6;
+  }
+  .outcome-lesson::before { content: '💡 '; }
+
+  .sim-nav-row {
+    display: flex; gap: 12px; align-items: center;
+  }
+  .btn-next {
+    background: var(--yellow); color: #111;
+    border: none; padding: 13px 28px; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.2s;
+    display: none;
+  }
+  .btn-next.show { display: block; }
+  .btn-next:hover { background: #ffe033; }
+  .btn-confirm {
+    background: var(--accent); color: #fff;
+    border: none; padding: 13px 28px; border-radius: 10px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-confirm:not(:disabled):hover { opacity: 0.85; }
+
+  /* Aside */
+  .aside-section { margin-bottom: 28px; }
+  .aside-section h4 {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+  .aside-stat { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .aside-stat:last-child { border-bottom: none; }
+  .aside-stat .k { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .aside-stat .v {
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .glossary-term {
+    padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .term { font-size: 13px; font-weight: 600; color: var(--accent); }
+  .glossary-term .def { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+
+  /* ── RECAP SCREEN ── */
+  #recap-screen {
+    padding-top: 56px; background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+  .recap-card {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 24px; padding: 56px; max-width: 640px; width: 90%;
+    text-align: center;
+  }
+  .recap-icon { font-size: 56px; margin-bottom: 24px; }
+  .recap-card h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 30px; font-weight: 700; margin-bottom: 12px;
+  }
+  .recap-card .subtitle { font-size: 16px; color: var(--muted); margin-bottom: 36px; }
+  .recap-scores {
+    display: flex; gap: 16px; justify-content: center; margin-bottom: 36px;
+  }
+  .recap-score {
+    background: var(--dark3); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px 24px; min-width: 120px;
+  }
+  .recap-score .val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px; font-weight: 700; color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .recap-score .lbl { font-size: 12px; color: var(--muted); }
+  .recap-takeaways {
+    text-align: left; margin-bottom: 36px;
+    background: var(--dark3); border-radius: 14px; padding: 20px 24px;
+  }
+  .recap-takeaways h4 {
+    font-size: 13px; font-weight: 700; color: var(--yellow); margin-bottom: 14px;
+    letter-spacing: 0.5px;
+  }
+  .recap-takeaways li {
+    font-size: 14px; color: #cdd5e8; padding: 6px 0 6px 20px;
+    position: relative; line-height: 1.5;
+  }
+  .recap-takeaways li::before {
+    content: '▸'; position: absolute; left: 0; color: var(--accent);
+  }
+  .recap-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-secondary {
+    background: var(--card); border: 1px solid var(--border);
+    color: #cdd5e8; padding: 13px 24px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--dark3); border-color: var(--muted); }
+
+  /* ── GLOSSARY MODAL ── */
+  .glossary-modal {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .glossary-modal.open { opacity: 1; pointer-events: all; }
+  .glossary-panel {
+    background: var(--dark2); border: 1px solid var(--border);
+    border-radius: 20px; width: 560px; max-width: 90vw;
+    max-height: 80vh; overflow-y: auto; padding: 36px;
+  }
+  .glossary-panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px; font-weight: 700; margin-bottom: 24px;
+  }
+  .glos-close {
+    position: absolute; top: 16px; right: 20px;
+    background: none; border: none; color: var(--muted); font-size: 20px;
+    cursor: pointer;
+  }
+  .glos-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .glos-item:last-child { border-bottom: none; }
+  .glos-item dt { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .glos-item dd { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+  /* Mobile */
+  @media(max-width:768px){
+    .home-hero, .product-hero { padding: 40px 24px 32px; }
+    .product-grid, .home-section-label { padding: 0 24px; }
+    .product-grid { padding-bottom: 48px; }
+    .sim-main { padding: 24px; }
+    .sim-aside { display: none; }
+    .product-content { padding: 24px; }
+    .nav { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav">
+  <div class="nav-logo" onclick="goHome()">Logistics <span>101</span></div>
+  <div class="nav-breadcrumb" id="nav-breadcrumb"></div>
+  <div class="nav-right">
+    <button class="nav-btn" onclick="openGlossary()">📖 Glossary</button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════════════ -->
+<div class="screen active" id="home">
+  <div class="home-hero">
+    <div class="home-hero-tag">🎓 New Leader Orientation</div>
+    <h1>How does our<br><em>logistics business</em> actually work?</h1>
+    <p>Four interactive modules, written in plain language. No logistics background needed — just curiosity.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="val">4</div><div class="lbl">Business Lines</div></div>
+      <div class="hero-stat"><div class="val">20+</div><div class="lbl">Decisions to Make</div></div>
+      <div class="hero-stat"><div class="val">~15 min</div><div class="lbl">Per Module</div></div>
+    </div>
+  </div>
+  <div class="home-section-label" style="padding-top:40px">
+    <h2>Choose a Business Line to Explore</h2>
+  </div>
+  <div class="product-grid" id="product-grid"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PRODUCT LANDING PAGE
+══════════════════════════════════════════════ -->
+<div class="screen" id="product-page">
+  <div class="product-hero" id="product-hero">
+    <button class="back-btn" onclick="goHome()">← Back to all modules</button>
+    <div class="product-tag" id="product-tag"></div>
+    <h1 id="product-title"></h1>
+    <p class="subtitle" id="product-subtitle"></p>
+  </div>
+  <div class="product-content">
+    <div>
+      <div class="product-overview">
+        <h2 id="po-heading"></h2>
+        <p id="po-body"></p>
+        <ul class="key-points" id="po-points"></ul>
+      </div>
+    </div>
+    <div class="product-sidebar">
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="sim-cta-box">
+        <h3>Ready to experience it?</h3>
+        <p>Step into a real scenario and make the decisions that drive this business.</p>
+        <button class="btn-primary" id="start-sim-btn" onclick="startSim()">
+          <span>Enter Simulation</span><span>→</span>
+        </button>
+      </div>
+      <div class="industries-list" id="industries-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SIMULATION SCREEN
+══════════════════════════════════════════════ -->
+<div class="screen" id="sim-screen">
+  <div class="sim-topbar">
+    <button class="back-btn" style="margin-bottom:0" onclick="exitSim()">← Exit</button>
+    <div class="sim-title" id="sim-title"></div>
+    <div class="sim-progress-wrap">
+      <div class="sim-progress-bar"><div class="sim-progress-fill" id="sim-progress-fill"></div></div>
+      <div class="sim-step-label" id="sim-step-label"></div>
+    </div>
+  </div>
+  <div class="sim-body">
+    <div class="sim-main">
+      <div class="scene-tag" id="scene-tag"></div>
+      <div class="scene-title" id="scene-title"></div>
+      <div class="scene-narrative" id="scene-narrative"></div>
+      <div class="choices-label">What do you do?</div>
+      <div class="choices" id="choices-container"></div>
+      <div class="outcome-card" id="outcome-card">
+        <div class="outcome-icon" id="outcome-icon"></div>
+        <div class="outcome-title" id="outcome-title"></div>
+        <div class="outcome-text" id="outcome-text"></div>
+        <div class="outcome-lesson" id="outcome-lesson"></div>
+      </div>
+      <div class="sim-nav-row">
+        <button class="btn-confirm" id="btn-confirm" onclick="confirmChoice()" disabled>Confirm Choice</button>
+        <button class="btn-next show" id="btn-next" onclick="nextScene()" style="display:none">Next Scene →</button>
+        <button class="btn-next show" id="btn-finish" onclick="finishSim()" style="display:none">See My Results →</button>
+      </div>
+    </div>
+    <div class="sim-aside" id="sim-aside">
+      <div class="aside-section">
+        <h4>Key Figures</h4>
+        <div id="aside-stats"></div>
+      </div>
+      <div class="aside-section">
+        <h4>📖 Glossary Terms</h4>
+        <div id="aside-glossary"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     RECAP SCREEN
+══════════════════════════════════════════════ -->
+<div class="screen" id="recap-screen">
+  <div style="padding-top:80px; display:flex; justify-content:center; padding-bottom:80px;">
+    <div class="recap-card">
+      <div class="recap-icon" id="recap-icon"></div>
+      <h2 id="recap-title"></h2>
+      <p class="subtitle" id="recap-subtitle"></p>
+      <div class="recap-scores" id="recap-scores"></div>
+      <div class="recap-takeaways">
+        <h4>🎯 Key Takeaways</h4>
+        <ul id="recap-takeaways"></ul>
+      </div>
+      <div class="recap-actions">
+        <button class="btn-secondary" onclick="replaySim()">↺ Replay</button>
+        <button class="btn-secondary" onclick="goHome()">← All Modules</button>
+        <button class="btn-primary" style="width:auto; padding:13px 24px;" id="recap-next-btn" onclick="goNextProduct()">Next Module →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GLOSSARY MODAL -->
+<div class="glossary-modal" id="glossary-modal" onclick="closeGlossaryIfBg(event)">
+  <div class="glossary-panel" style="position:relative">
+    <button class="glos-close" onclick="closeGlossary()">✕</button>
+    <h2>📖 Logistics Glossary</h2>
+    <dl id="glossary-list"></dl>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════
+
+const PRODUCTS = [
+  {
+    id: 'dcc',
+    name: 'Dedicated Contract Carriage',
+    shortName: 'DCC',
+    tag: 'Transportation',
+    icon: '🚛',
+    accent: '#0073CF',
+    accentDim: 'rgba(0,115,207,0.4)',
+    accentBg: 'rgba(0,115,207,0.12)',
+    accentBg2: 'rgba(0,115,207,0.1)',
+    heroBg: '#001833',
+    cardDesc: 'A dedicated truck fleet — professionally managed so you maintain the control of private ownership without the operational burden.',
+    heroSubtitle: 'When your business needs reliable, brand-consistent delivery every single day, dedicated contract carriage puts a professional fleet exclusively at your service.',
+    overviewHeading: 'What is Dedicated Contract Carriage?',
+    overviewBody: 'Imagine your company needs trucks and drivers to move product every day — but you don\'t want to own and manage a fleet yourself. That\'s exactly what Dedicated Contract Carriage (DCC) solves. We provide the trucks, hire and train the drivers, manage fuel, handle maintenance, and ensure safety compliance — all under your brand, exclusively serving your routes.',
+    keyPoints: [
+      'Drivers wear your logo and follow your schedules — they\'re dedicated entirely to your business',
+      'We handle all the messy stuff: recruiting drivers, managing DOT compliance, vehicle maintenance, fuel procurement',
+      'Advanced technology (ClearChain®) gives you real-time visibility into every load',
+      'Hub & Spoke and relay networks extend your reach without needing team drivers',
+      '600M+ miles driven annually across 375+ operating locations'
+    ],
+    stats: [
+      { val: '10,400', lbl: 'Professional Drivers' },
+      { val: '7,600', lbl: 'Power Units (trucks)' },
+      { val: '20,000', lbl: 'Trailers' },
+      { val: '375+', lbl: 'Operating Locations' },
+    ],
+    industries: ['Grocery', 'Retail', 'Automotive', 'Home Improvement', 'Food & Beverage', 'Pharmaceutical'],
+    simulation: 'dcc'
+  },
+  {
+    id: 'dcm',
+    name: 'Distribution Center Management',
+    shortName: 'DCM',
+    tag: 'Warehousing',
+    icon: '🏭',
+    accent: '#EF9C35',
+    accentDim: 'rgba(239,156,53,0.4)',
+    accentBg: 'rgba(239,156,53,0.12)',
+    accentBg2: 'rgba(239,156,53,0.1)',
+    heroBg: '#1a0e00',
+    cardDesc: 'End-to-end warehouse operations management — from receiving and storage to picking, packing, and shipping, across 90+ facilities.',
+    heroSubtitle: 'Running a warehouse is more than just storing boxes. It\'s labor management, technology, engineering, and relentless process improvement — all to get the right product to the right place on time.',
+    overviewHeading: 'What is Distribution Center Management?',
+    overviewBody: 'A Distribution Center (DC) is the nerve center of a supply chain — the place where goods arrive in bulk and leave as individual orders. We manage the people, technology, equipment, and processes inside these facilities on behalf of our customers. Think of us as the operating team behind the warehouse your business depends on.',
+    keyPoints: [
+      '90+ warehouse locations, 25M+ sq. ft. of managed space nationwide',
+      '9,000 warehouse associates managed through rigorous hiring and training systems',
+      'WMS (Warehouse Management Systems) and LMS (Labor Management Systems) drive efficiency',
+      'Industries served: 42% Auto, 26% Food & Beverage, 18% Appliance, 8% Industrial',
+      'Innovation pipeline includes autonomous forklifts, inventory drones, and AI scheduling'
+    ],
+    stats: [
+      { val: '90+', lbl: 'Warehouse Locations' },
+      { val: '25M+', lbl: 'Sq. Ft. Managed' },
+      { val: '9,000', lbl: 'Associates' },
+      { val: '600M', lbl: 'Units Shipped/Year' },
+    ],
+    industries: ['Automotive', 'Food & Beverage', 'Appliances', 'Industrial', 'Consumer Goods', 'E-Commerce'],
+    simulation: 'dcm'
+  },
+  {
+    id: 'epes',
+    name: 'Truckload Services',
+    shortName: 'Truckload',
+    tag: 'Asset Carrier',
+    icon: '📦',
+    accent: '#FECB00',
+    accentDim: 'rgba(254,203,0,0.4)',
+    accentBg: 'rgba(254,203,0,0.12)',
+    accentBg2: 'rgba(254,203,0,0.1)',
+    heroBg: '#1a1400',
+    cardDesc: 'Regional and long-haul truckload carrier serving the eastern US — 1,130+ power units, 7,000+ trailers, 62M+ miles per year.',
+    heroSubtitle: 'When a customer needs a full truckload of goods moved from one point to another — reliably, on time, and at competitive rates — this is the business that makes it happen.',
+    overviewHeading: 'What is Truckload Services?',
+    overviewBody: 'Truckload (TL) is the simplest form of freight: one truck, one load, one customer. Our truckload carrier operates its own fleet of power units and trailers across 48 states, specializing in the eastern half of the US. Unlike dedicated carriage (where trucks serve one customer), truckload capacity can serve many different shippers, making it flexible and efficient.',
+    keyPoints: [
+      'Asset-based carrier: we own the trucks and employ the drivers',
+      'General commodities (one-way lanes) and dedicated truckload (regular round trips)',
+      'Specialty services: yard operations (moving trailers on-site), shuttle runs, and drayage (port moves)',
+      '6 terminals across the eastern US; 48-state operating authority',
+      'Backhaul program generates $16.3M in revenue by filling empty return miles'
+    ],
+    stats: [
+      { val: '1,130+', lbl: 'Power Units' },
+      { val: '7,000+', lbl: 'Trailers' },
+      { val: '62M+', lbl: 'Miles Per Year' },
+      { val: '6', lbl: 'Terminals' },
+    ],
+    industries: ['Home Improvement', 'Retail', 'Manufacturing', 'Industrial', 'Consumer Goods'],
+    simulation: 'epes'
+  },
+  {
+    id: 'scm',
+    name: 'Supply Chain Management',
+    shortName: 'SCM',
+    tag: 'Orchestration',
+    icon: '🔗',
+    accent: '#a78bfa',
+    accentDim: 'rgba(167,139,250,0.4)',
+    accentBg: 'rgba(167,139,250,0.12)',
+    accentBg2: 'rgba(167,139,250,0.1)',
+    heroBg: '#10001a',
+    cardDesc: 'Full-network freight orchestration — managing $6.3B in freight across 18,000 carriers, all modes, with engineers and analysts who continuously optimize your network.',
+    heroSubtitle: 'The most complex logistics challenge isn\'t moving a single truck — it\'s coordinating hundreds of carriers, thousands of shipments, and dozens of suppliers into a seamless, cost-efficient network.',
+    overviewHeading: 'What is Supply Chain Management?',
+    overviewBody: 'Supply Chain Management (SCM) is the control-tower service for companies that want experts to orchestrate their entire freight operation. Instead of managing carriers, tracking shipments, negotiating rates, and analyzing data yourself, our team of 2,000+ experts does it all — using advanced technology to keep freight moving, costs controlled, and visibility total.',
+    keyPoints: [
+      '$6.3B in Freight Under Management (FUM) across all modes',
+      '18,000 qualified carriers across TL, LTL, intermodal, air, ocean, rail, and expedite',
+      '150+ degreed supply chain engineers run network design and continuous improvement',
+      '5% average annual savings delivered to customers through optimization',
+      'From brokerage to full 4PL — we can take on as much or as little as needed'
+    ],
+    stats: [
+      { val: '$6.3B', lbl: 'Freight Under Management' },
+      { val: '18,000', lbl: 'Carrier Partners' },
+      { val: '54M+', lbl: 'Annual Shipments' },
+      { val: '5%', lbl: 'Avg Annual Savings' },
+    ],
+    industries: ['Automotive', 'Manufacturing', 'Consumer Packaged Goods', 'Food & Beverage', 'Retail', 'Industrial'],
+    simulation: 'scm'
+  }
+];
+
+// ════════════════════════════════════════════════
+// SIMULATIONS DATA
+// ════════════════════════════════════════════════
+
+const SIMULATIONS = {
+
+  dcc: {
+    title: 'Dedicated Contract Carriage — Day in the Life',
+    aside: [
+      { k: 'Your Role', v: 'DCC Operations Manager' },
+      { k: 'Fleet Size', v: '48 dedicated trucks' },
+      { k: 'Daily Deliveries', v: '~150 stops' },
+      { k: 'Technology', v: 'ClearChain® platform' },
+    ],
+    glossary: [
+      { term: 'Dedicated Fleet', def: 'Trucks and drivers exclusively assigned to one customer\'s business.' },
+      { term: 'Hub & Spoke', def: 'Network where drivers run shorter legs between relay points, going home nightly.' },
+      { term: 'Backhaul', def: 'Using return trips to carry revenue freight, reducing empty miles.' },
+      { term: 'TSS', def: 'Transportation Support Services — 24/7 centralized operations center.' },
+      { term: 'ClearChain®', def: 'Proprietary technology platform for fleet visibility, dispatch, and analytics.' },
+    ],
+    scenes: [
+      {
+        tag: 'Scene 1 · Morning Dispatch',
+        title: 'It\'s 5:47 AM. The dispatch board is live.',
+        narrative: `You're the operations manager at a regional distribution center for a major home improvement retailer. Every morning, <strong>48 dedicated trucks</strong> need to roll out by 7 AM to hit store delivery windows.\n\nToday's problem: <strong>Driver #12 called out sick</strong>. He has 14 stops assigned, including three time-critical store openings at 8 AM. You have three options in front of you.`,
+        choices: [
+          { key: 'A', text: 'Call in a flex driver from the counter-cycle pool', sub: 'Pre-trained, familiar with the route. 45-min lead time.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Split the 14 stops across 3 available drivers (overtime)', sub: 'Guaranteed coverage but costly and strains other routes.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Dispatch a pre-qualified third-party carrier immediately', sub: 'Available now, meets DOT standards, but higher per-mile cost.', risk: 'med', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Smart call.', text: 'The flex driver arrives in 40 minutes, is pre-loaded on the ClearChain app, and knows the route. All 14 stops delivered on time. Your counter-cycle pool exists precisely for this moment — it\'s one of DCC\'s biggest differentiators over private fleet ownership.', lesson: 'Penske maintains an "Elite Driver Pool" — traveling flex drivers pre-trained on technology who can cover surge demand across customers. This is infrastructure a private fleet operator could never justify alone.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Coverage achieved, but at a cost.', text: 'You cover all stops, but two drivers run over 10 hours, triggering Hours of Service (HOS) alerts. You also incur $1,800 in overtime. The 8 AM store openings make it — barely.', lesson: 'Overtime is a legitimate tool in surge situations, but HOS regulations (federal driving hour limits) create real constraints. Understanding driver hours is fundamental to ops management.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Covered, but you left money on the table.', text: 'The third-party carrier delivers everything on time, but at $4.20/mile vs. your contracted $2.80/mile rate. Your customer is happy, but your P&L takes a hit. Good for service, not great for cost.', lesson: 'Third-party carriers (via brokerage) are the backstop for capacity gaps. They\'re pre-qualified for safety and insurance, but the cost premium is real — which is why having a flex driver pool matters.' }
+        }
+      },
+      {
+        tag: 'Scene 2 · Mid-Morning',
+        title: 'Route 7 is running 35 minutes late.',
+        narrative: `ClearChain® just sent an alert: <strong>Route 7 is behind schedule</strong> due to unexpected construction on I-85. The driver has 6 stores remaining. Two of those stores have strict "delivery by 10 AM" windows — or they reject the delivery and you pay a charge-back.\n\nYour Transportation Support Services (TSS) team is watching in real-time. What do you instruct them to do?`,
+        choices: [
+          { key: 'A', text: 'Re-route through surface streets, accept 15-min delay on 2 stops', sub: 'Avoids chargeback, driver stress minimal.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Call the store managers directly to get a window extension', sub: 'Relationship-dependent. May work, may not.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Push through on original route — the delay will self-correct', sub: 'Optimistic. High risk of missed windows.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'TSS re-routes. Problem solved.', text: 'The surface street alternative adds 12 minutes but avoids the backup. Both time-critical stores receive on time. TSS logs the route deviation, and your engineering team will analyze the construction pattern to pre-build an alternate route for future weeks.', lesson: 'TSS (Transportation Support Services) is Penske\'s 24/7 centralized ops team — they handle re-routing, emergencies, track & trace, and driver support so site managers can focus on the big picture.' },
+          B: { icon: '⚠️', type: 'ok', title: 'One store said yes, one said no.', text: 'Store #4 gives you a 20-minute extension. Store #7 won\'t budge — their stocking crew leaves at 10:15. You incur a chargeback on that stop. The customer relationship is strained, but manageable.', lesson: 'Delivery windows are often contractual. Building goodwill with store managers matters, but the structural solution is technology-driven re-routing, not phone calls.' },
+          C: { icon: '❌', type: 'bad', title: 'Two missed windows. Two chargebacks.', text: 'You miss both stores by 22 minutes. The customer issues two chargebacks totaling $3,200 and flags your on-time delivery KPI. Your monthly scorecard will show a dip. One bad traffic day shouldn\'t cost this much.', lesson: 'On-Time Delivery % is the #1 KPI in dedicated carriage. Every missed window has a financial and relationship cost. Real-time visibility and proactive re-routing are how you protect it.' }
+        }
+      },
+      {
+        tag: 'Scene 3 · Afternoon',
+        title: 'The afternoon run has empty miles.',
+        narrative: `It's 2 PM. Eight of your trucks have completed their morning routes and are <strong>heading back to the DC empty</strong>. That's roughly 180 miles of "dead" driving — fuel cost with zero revenue.\n\nYour backhaul coordinator spots an opportunity: a lumber supplier 30 miles off the return route has a load that pays <strong>$2,800</strong> and needs pickup today. Standard backhaul revenue split gives the customer 70% ($1,960 to offset their dedicated cost). Do you take it?`,
+        choices: [
+          { key: 'A', text: 'Take the backhaul — book it immediately', sub: '30 miles off-route, $2,800 revenue, drop & hook pickup.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Evaluate first — check driver hours and equipment fit', sub: 'Slight delay but avoids HOS violation risk.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Decline — don\'t add complexity to the return run', sub: 'Simpler, but leaves revenue on the table.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Smart revenue capture.', text: 'The load is a clean drop & hook (no waiting, just swap the trailer). Driver is back within 45 minutes of original ETA. Customer receives a $1,960 credit on their monthly invoice — and your fleet\'s utilization rate goes up.', lesson: 'Backhaul programs are a major differentiator for DCC. Penske\'s centralized backhaul team manages 19,000 backhaul loads and has generated $16.3M in revenue that flows back to customers as cost offsets.' },
+          B: { icon: '✅', type: 'good', title: 'Good discipline.', text: 'Quick check confirms the driver has 4.5 hours remaining on HOS and the dry van trailer is compatible. You book it. Same outcome as Option A, with zero compliance risk.', lesson: 'Backhauls are valuable, but Hours of Service (HOS) violations carry federal penalties. Best practice is always a quick eligibility check before committing capacity.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Safe, but costly in aggregate.', text: 'You skip the load. Clean operations, but $2,800 in potential revenue goes to a competitor. Multiply this across 80 dedicated locations daily, and skipped backhauling costs customers millions annually.', lesson: 'Empty miles are the enemy of fleet economics. Backhaul programs fill those miles with revenue, directly reducing the customer\'s total logistics cost.' }
+        }
+      },
+      {
+        tag: 'Scene 4 · End of Day',
+        title: 'A safety alert comes in.',
+        narrative: `At 4:30 PM, your in-cab camera system flags <strong>Driver #31 for a fatigue alert</strong> — the AI detected eye-closure patterns consistent with microsleep. The driver is currently 8 miles from the DC on his return trip.\n\nThis isn't a policy question — it's a safety question. But there are real operational implications. What do you do?`,
+        choices: [
+          { key: 'A', text: 'Radio the driver immediately, instruct him to pull over safely', sub: 'TSS dispatches a relief driver. Truck waits 45 minutes.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Call the driver and let him decide if he\'s okay to continue', sub: 'Faster, but puts the judgment call on the driver.', risk: 'high', outcome: 'bad' },
+          { key: 'C', text: 'Note the alert and let him finish — he\'s almost home', sub: '8 miles at highway speed is under 10 minutes.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Zero-tolerance safety culture in action.', text: 'Driver #31 pulls over safely. TSS coordinates a relief vehicle. The delay is 45 minutes. The driver is fine — and grateful. Your safety scorecard remains clean. More importantly: a potential accident was avoided.', lesson: 'In-cab camera programs do more than monitor — fatigue alerts generate immediate intervention. The financial benefit is massive: a single prevented accident avoids legal liability that can cost millions in "nuclear verdicts." Safety isn\'t just moral — it\'s financial.' },
+          B: { icon: '❌', type: 'bad', title: 'Driver says he\'s fine. He wasn\'t.', text: 'Driver #31 completes the return but nearly drifts on the exit ramp. A witness calls it in. The near-miss generates an incident report, triggers a DOT inquiry, and your insurance carrier raises your premium by 12%.', lesson: 'Asking fatigued drivers to self-assess is a documented failure mode. The camera AI is more accurate than human self-reporting. Always act on fatigue alerts immediately.' },
+          C: { icon: '❌', type: 'bad', title: 'Near-miss. Major liability.',  text: 'A serious incident nearly occurs. Beyond the human cost, the legal exposure is enormous. Courts have issued "nuclear verdicts" of $10M+ against fleet operators who failed to act on known safety data. This is exactly the risk DCC clients transfer to us.', lesson: 'One of DCC\'s core value propositions is risk isolation from "nuclear verdicts" — the massive jury awards in trucking accidents. That protection only exists if safety protocols are followed rigorously.' }
+        }
+      },
+      {
+        tag: 'Scene 5 · Strategy',
+        title: 'Your customer wants to expand to 3 new markets.',
+        narrative: `Your retail customer is opening stores in three new metro areas — <strong>Charlotte, Nashville, and Richmond</strong>. They want to extend their dedicated fleet to cover these markets. Each new route is ~280 miles from the nearest existing hub.\n\nYou have two structural options to propose. Which network design do you recommend?`,
+        choices: [
+          { key: 'A', text: 'Hub & Spoke with relay points between markets', sub: 'Drivers run max 280-mile legs, go home nightly. Higher infrastructure cost upfront.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Team drivers running overnight long-haul routes', sub: 'Lower infrastructure cost, faster setup. Drivers sleep in the truck.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Use third-party carriers for the new markets until volume justifies a dedicated fleet', sub: 'Flexible and low-commitment, but lacks dedicated service levels.', risk: 'med', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Hub & Spoke: the right answer at scale.', text: 'You design 3 relay points — each no more than 300 miles apart. Drivers run from their home hub to the relay point, swap trailers with the inbound driver, and return home. Product moves continuously. Drivers sleep in their own beds. Driver retention improves dramatically.', lesson: 'Hub & Spoke is one of DCC\'s signature innovations. It allows truckload freight to move long distances with single, local drivers. The result: better driver quality of life, lower turnover, and product that never stops moving.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Works for now, but costly and unstable.', text: 'Team driving covers the distance but averages 34% higher driver turnover — people don\'t want to live in a truck. Within 6 months, two of your three routes have driver shortages.', lesson: 'Driver lifestyle matters enormously for retention. The trucking industry has a chronic driver shortage. Any network design that forces overnight travel without home time will suffer chronic staffing problems.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Flexibility has a service quality cost.',  text: 'Third-party carriers perform at 91% on-time vs. your dedicated fleet\'s 99.2%. Store managers in the new markets notice the difference immediately. After 4 months, the customer asks you to convert to dedicated.', lesson: 'Dedicated fleets consistently outperform third-party carriers on service metrics. The economics eventually justify dedicated in any high-volume, consistent lane — usually at 80+ loads per month.' }
+        }
+      },
+      {
+        tag: 'Scene 6 · Business Review',
+        title: 'The customer wants a cost reduction.',
+        narrative: `Your quarterly business review is tomorrow. The customer\'s CFO has put pressure on logistics costs — they want a <strong>5% reduction in their dedicated freight spend</strong>.\n\nYour engineering team has identified three opportunities. You can present one as the primary recommendation. Which do you lead with?`,
+        choices: [
+          { key: 'A', text: 'Route optimization: engineering analysis shows 3.2% savings through re-sequencing stops', sub: 'Data-driven, low disruption, implementable in 30 days.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Fleet right-sizing: reduce from 48 to 44 trucks based on utilization data', sub: 'Larger savings (~4.8%) but requires service model changes.', risk: 'med', outcome: 'good' },
+          { key: 'C', text: 'Driver wage freeze to reduce operating costs', sub: 'Immediate savings, but high retention risk in a tight labor market.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Engineering-driven savings win every time.',  text: 'You present a clear visual analysis: re-sequencing 12 routes eliminates 14,000 miles per month. At your blended cost per mile, that\'s $3.2% reduction — $118K annually. The CFO approves immediately. You\'re on track to deliver a second optimization wave in Q3.', lesson: 'Transportation optimization (route engineering) consistently delivers 3-8% cost reduction. It\'s the cleanest lever because it improves cost AND service simultaneously — fewer miles means faster deliveries.' },
+          B: { icon: '✅', type: 'good', title: 'Right-sizing works — with the right data.',  text: 'Fleet utilization data shows 4 trucks averaging under 60% productive miles. Removing them saves $380K annually while maintaining service levels if you adjust route sequencing. The CFO loves it.', lesson: 'Fleet optimization is a high-impact lever but requires excellent data. Penske\'s engineering team runs utilization models continuously — customers who engage in quarterly reviews consistently outperform those who don\'t.' },
+          C: { icon: '❌', type: 'bad', title: 'Short-term savings, long-term crisis.',  text: 'The CFO approves the wage freeze. Within 90 days, 11 drivers resign — many to competitors offering sign-on bonuses. Recruiting cost to replace them: $220K. Service levels drop to 94% during the shortage. The customer escalates.', lesson: 'Driver wages are not a discretionary cost — they\'re a market-driven input. The trucking industry faces a structural driver shortage. Cutting driver pay to save costs is a false economy that almost always costs more than it saves.' }
+        }
+      }
+    ]
+  },
+
+  dcm: {
+    title: 'Distribution Center Management — Warehouse Operations',
+    aside: [
+      { k: 'Your Role', v: 'DC Operations Manager' },
+      { k: 'Facility Size', v: '842,000 sq. ft.' },
+      { k: 'Associates', v: '~180 warehouse workers' },
+      { k: 'Technology', v: 'WMS + LMS + ClearChain®' },
+    ],
+    glossary: [
+      { term: 'WMS', def: 'Warehouse Management System — software that directs all movement of goods inside a DC.' },
+      { term: 'LMS', def: 'Labor Management System — tracks individual worker productivity against engineered standards.' },
+      { term: 'OTIF', def: 'On Time In Full — the gold standard delivery metric. Did the right product arrive, on time, complete?' },
+      { term: 'Cycle Count', def: 'Ongoing physical inventory checks (vs. once-annual full count) to maintain accuracy.' },
+      { term: 'Throughput', def: 'The volume of goods a DC can process in a given period — a key efficiency metric.' },
+    ],
+    scenes: [
+      {
+        tag: 'Scene 1 · Start of Shift',
+        title: 'The inbound dock is backed up.',
+        narrative: `It's 6 AM at an 842,000 sq. ft. distribution center. You manage warehousing operations for a major home improvement retailer. Today, <strong>14 inbound trailers are waiting to be unloaded</strong> — but your receiving team is only staffed for 10. An unexpected vendor truck arrived early.\n\nYour available options:`,
+        choices: [
+          { key: 'A', text: 'Pull 8 associates from the pick zone to receiving temporarily', sub: 'Clears the dock but creates a pick zone backlog.', risk: 'med', outcome: 'ok' },
+          { key: 'B', text: 'Prioritize the 10 highest-velocity SKUs for immediate unload; hold the rest', sub: 'Smart triage — most impactful goods first.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Call in 6 temp workers from your staffing agency', sub: '2-hour lead time, additional labor cost.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'You clear the dock but create a new problem.', text: 'The receiving backlog clears in 3 hours. However, the pick zone falls 18% behind on outbound orders. You hit OTIF of 94.2% for the day — below your 97% target. Not a crisis, but a miss.', lesson: 'Robbing Peter to pay Paul is a short-term fix. DC operations are interconnected systems — a backup at receiving creates ripple effects in picking and shipping. Labor Management Systems (LMS) help predict these tradeoffs in advance.' },
+          B: { icon: '✅', type: 'good', title: 'Excellent triage — data-driven prioritization.', text: 'Your WMS quickly identifies the 10 SKUs with the highest outbound velocity. You unload those first, ensuring your pick zone stays stocked. The remaining 4 trailers are scheduled for second shift. OTIF stays at 97.8%. Smart.', lesson: 'SKU velocity data (how fast items sell through) should drive DC prioritization decisions. WMS systems make this data instantly actionable — this is the difference between a data-driven DC and a first-come-first-served one.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Problem solved, but at a cost.', text: 'Temp workers arrive at 8 AM and clear the dock by 11. Additional labor cost: $1,800. OTIF stays strong at 97.6%. Fine for an emergency, but temp labor quality is variable — onboarding takes time that reduces efficiency.', lesson: 'Temp labor is an essential surge tool, but quality and speed are lower than trained associates. Penske\'s hiring model targets an 80/20 full-time to temp ratio specifically to preserve operational quality during fluctuations.' }
+        }
+      },
+      {
+        tag: 'Scene 2 · Mid-Morning',
+        title: 'The WMS flags a 4,000-unit inventory discrepancy.',
+        narrative: `Your Warehouse Management System shows a <strong>4,000-unit gap</strong> between system inventory and what pickers are reporting on the shelves. The products are automotive parts — any shortage halts an assembly plant. You have 2 hours before the next outbound truck departs.\n\nYour options:`,
+        choices: [
+          { key: 'A', text: 'Halt the outbound shipment and do a full physical count', sub: 'Guaranteed accuracy. 3-4 hour delay.', risk: 'low', outcome: 'ok' },
+          { key: 'B', text: 'Use recent cycle count data to estimate the true inventory', sub: 'Data-driven approximation. Moderate risk.', risk: 'med', outcome: 'good' },
+          { key: 'C', text: 'Ship based on system inventory and reconcile afterwards', sub: 'Fastest — but risks shipping short.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'Safe but slow. Customer plant delays by 4 hours.', text: 'The physical count reveals a picking error from two days ago — 4,000 units were placed in the wrong bin location. You correct the WMS, ship accurately. But the 4-hour delay triggers a late notification to the automotive customer.', lesson: 'Physical counts are 100% accurate but operationally costly. Best-practice DCs run continuous cycle counting to maintain accuracy so this type of emergency full count becomes unnecessary.' },
+          B: { icon: '✅', type: 'good', title: 'Smart. Cycle count data saves the day.', text: 'Your cycle count program (running 2% of inventory daily) has checked this SKU 3 days ago. The data shows 4,020 units in two bin locations — a location discrepancy, not an actual shortage. You correct the WMS on the fly, ship on time.', lesson: 'A rigorous cycle counting program is the foundation of inventory accuracy. Best-in-class DCs achieve 99.8% accuracy through continuous cycle counting — avoiding the chaos of emergency physical counts.' },
+          C: { icon: '❌', type: 'bad', title: 'You ship short. The plant shuts down.', text: 'The shipment arrives 1,800 units short. The assembly plant halts for 6 hours. The financial penalty: $220,000. Your customer escalates. A root cause analysis reveals the WMS data was wrong due to a receiving scan error 3 days prior.', lesson: 'In automotive supply chains, inventory accuracy isn\'t a preference — it\'s non-negotiable. A single short shipment can halt a manufacturing line at enormous cost. This is why WMS accuracy and cycle counting are core KPIs.' }
+        }
+      },
+      {
+        tag: 'Scene 3 · Afternoon',
+        title: 'Labor performance is dropping in the pick zone.',
+        narrative: `Your LMS (Labor Management System) is showing that afternoon pick rates have dropped from a standard of <strong>134 cases/hour to 98 cases/hour</strong> — a 27% decline — across 6 associates. It's 2 PM, and you have 8,000 cases still to pick for tomorrow's outbound.\n\nWhat's your response?`,
+        choices: [
+          { key: 'A', text: 'Walk the floor immediately to observe and coach', sub: 'Direct supervisory engagement. Time-intensive.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Issue a productivity warning to the underperforming associates', sub: 'Quick, but demotivating without root cause analysis.', risk: 'high', outcome: 'bad' },
+          { key: 'C', text: 'Check equipment — are voice-directed picking devices functioning?', sub: 'Technical root cause check. 15 minutes.', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Floor observation reveals the real problem.', text: 'Three associates are working a zone with a broken conveyor belt — product is backing up and they\'re manually clearing it. Two others are new hires who weren\'t trained on afternoon zone layouts. You reassign the new hires to a buddy system and call maintenance. Productivity recovers to 128 cases/hour by 3 PM.', lesson: 'LMS data tells you WHAT happened, but only floor observation tells you WHY. Effective DC managers spend time on the floor — data surfaces the signal, humans find the root cause.' },
+          B: { icon: '❌', type: 'bad', title: 'Warning issued. Problem gets worse.', text: 'The associates are frustrated — they know the conveyor is broken but didn\'t escalate it. Two call out sick the next day. The broken equipment goes unrepaired. Pick rates remain low for 3 days.', lesson: 'Performance warnings without root cause analysis are counterproductive. Associates working broken equipment aren\'t underperforming — the system is. Penske\'s safety and engagement culture emphasizes "why" before "who." ' },
+          C: { icon: '✅', type: 'good', title: 'Technical root cause identified.', text: 'You find that 4 voice-directed picking devices have software glitches — associates are waiting 8-12 seconds per pick for confirmation. IT patches 3 devices immediately; one is swapped out. Pick rates recover to 129 cases/hour. Your 8,000 cases will be done by 5 PM.', lesson: 'DC technology (voice picking, WMS, conveyor systems) is as important as labor. Modern DCs are technology businesses. Technology failures cascade into labor performance — which is why IT is a core support function in DCM.' }
+        }
+      },
+      {
+        tag: 'Scene 4 · Late Afternoon',
+        title: 'A seasonal surge is coming. You need 40 more workers in 2 weeks.',
+        narrative: `Your retail customer just confirmed their <strong>holiday surge plan</strong>: volume will increase 60% for 8 weeks starting in 14 days. You need to staff up from 180 to approximately 220 associates — a net 40 new hires.\n\nYour Warehouse Hiring Center team is ready. How do you approach the surge staffing?`,
+        choices: [
+          { key: 'A', text: 'Post for full-time positions only — better retention, longer onboarding', sub: '2-3 week time-to-fill. Stronger workforce long-term.', risk: 'med', outcome: 'ok' },
+          { key: 'B', text: 'Hire a mix: 30 temp workers + 10 full-time, using agency relationships', sub: 'Fastest to fill. Agency temps can start within 72 hours.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Cross-train existing associates on extra shifts (mandatory overtime)', sub: 'No new hires. High burnout risk.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'Quality hire but timeline is tight.', text: 'You fill 32 of 40 positions by the surge start date. The remaining 8 roles have offers out. The first 2 weeks of the surge are strained — seasoned associates are coaching new hires while trying to hit surge volumes.', lesson: 'Full-time hires are the long-term answer, but surge staffing requires speed. Best practice is a pre-built temp-to-perm pipeline — Penske targets an 80/20 FT/temp ratio and maintains agency relationships year-round to activate quickly.' },
+          B: { icon: '✅', type: 'good', title: 'Rapid fill, surge managed.', text: 'Agency temps onboard within 72 hours. Your structured onboarding (same-day orientation, role-based training, buddy program) gets them productive within 3 days. The 10 full-time hires become your next seasonal retention targets. Surge OTIF: 98.1%.', lesson: 'Penske\'s Warehouse Hiring Center processes 110,000+ applications annually with a 14-day application-to-hire timeline. The structured onboarding program gets new associates productive in days, not weeks — critical during surge.' },
+          C: { icon: '❌', type: 'bad', title: 'Associates burn out. Quality suffers.',  text: 'You run 12-hour mandatory shifts. By week 3, you have 22 callouts in one week. Quality degrades — damage rate spikes to 4.8% vs. your 2.4% target. Two associates are injured from fatigue. Incident reports trigger a safety review.', lesson: 'Mandatory overtime as a primary surge strategy is a documented failure mode. It increases injury risk, drives absenteeism, and creates quality issues. The cost of callouts and injury claims far exceeds the cost of temp labor.' }
+        }
+      },
+      {
+        tag: 'Scene 5 · Process Improvement',
+        title: 'Engineering proposes an automation pilot.',
+        narrative: `Your industrial engineering team has identified an opportunity: an <strong>autonomous floor scrubber</strong> (currently in pilot at 2 facilities) can reduce cleaning labor by 1.5 FTEs and improve floor safety scores. Cost: $84,000/year. Current cleaning labor cost: $127,000/year.\n\nAdditionally, an inventory drone pilot is available for cycle counting — it could improve inventory accuracy from 99.2% to 99.8% and reduce cycle count labor by 0.8 FTEs. Do you move forward?`,
+        choices: [
+          { key: 'A', text: 'Approve both — the ROI is clear on both projects', sub: 'Combined net savings ~$70K/year. Fast payback.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Approve the floor scrubber, defer the drone until proof-of-concept elsewhere', sub: 'Conservative on unproven tech. Still captures cleaning savings.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Defer both — the ROI analysis doesn\'t account for change management risk', sub: 'Preserve status quo. Miss savings opportunity.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Innovation + ROI. A winning combination.', text: 'Both pilots launch. The floor scrubber performs to spec and frees up 1.5 FTEs for higher-value work. The inventory drone (after a 6-week learning period) improves accuracy to 99.7%. Combined annual savings: $73K. Your facility becomes a showcase for the innovation team.', lesson: 'Penske\'s innovation pipeline includes autonomous scrubbers, inventory drones, and autonomous forklifts — all currently piloting or operating. The pattern: identify, pilot, measure ROI, then scale. This is how large DCs stay competitive.' },
+          B: { icon: '✅', type: 'good', title: 'Measured innovation. Smart sequencing.', text: 'The floor scrubber saves $43K in year one. You monitor the drone pilot at another facility, collect 6 months of data, then launch yours with confidence. Same outcome — just 9 months later.', lesson: 'Not every innovation needs to be first-mover. Piloting at one facility, measuring results, then scaling is a proven approach that reduces implementation risk. "Operate, pilot, pipeline" is a disciplined innovation model.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Missed savings, but risk-controlled.',  text: 'You defer both. No implementation risk. But your facility misses $73K in annual savings, and the innovation team notes your location as "low adoption" — which may affect future capital investment priority.', lesson: 'Change management risk is real, but it\'s manageable. In a competitive environment, consistently deferring proven automation creates a compounding disadvantage. The question isn\'t whether to automate, but how fast.' }
+        }
+      },
+      {
+        tag: 'Scene 6 · Strategic Review',
+        title: 'The customer wants to add a second DC 600 miles away.',
+        narrative: `Your customer is expanding nationally and wants to open a <strong>second distribution center in Phoenix, AZ</strong> (you\'re currently in Pennsylvania). They\'ve asked you to manage both facilities under a single contract.\n\nThey have two options to consider and want your recommendation:`,
+        choices: [
+          { key: 'A', text: 'Single customer full solution in a new 800K sq ft Phoenix facility', sub: 'Full design & build. 8-month timeline. Maximum customization.', risk: 'med', outcome: 'good' },
+          { key: 'B', text: 'Multi-customer shared facility — anchor tenant in an existing 1.2M sq ft flex space', sub: 'Faster. Lower cost per sq ft. Less customization.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Use a third-party warehouse in Phoenix for 12 months to test the market', sub: 'No long-term commitment. But no dedicated operations.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Custom solution, built for scale.', text: 'You design a purpose-built facility: rack configuration, conveyor layout, dock doors, and WMS setup all optimized for this customer\'s SKU mix and throughput. Higher upfront cost, but OTIF performance from day 1 is 97.4% — far better than a generic facility could deliver.', lesson: 'Single-customer dedicated DCs deliver the best operational performance but require volume and commitment to justify. Penske\'s real estate and engineering teams handle everything — site selection, building design, permit navigation.' },
+          B: { icon: '✅', type: 'good', title: 'Shared space: smart economics.',  text: 'You place the customer as an anchor tenant in an existing multi-customer facility. They get 400K sq ft, share dock infrastructure with another customer, and launch in 10 weeks. Cost per sq ft is 18% lower. OTIF: 96.8%.', lesson: 'Multi-customer facilities are one of DCC\'s most powerful innovations — shared infrastructure drives cost efficiency for customers who need flexibility over customization. Penske operates both models simultaneously.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Low risk, low performance.', text: 'The third-party warehouse delivers at 91% OTIF — fine for testing, poor for sustained operations. After 6 months, the customer is frustrated with service levels. You convert to a dedicated solution 8 months later — plus the time lost.', lesson: 'Third-party spot warehousing is a test-market tool, not a long-term strategy. The operational difference between managed warehousing and spot storage is significant — especially for high-velocity SKUs.' }
+        }
+      }
+    ]
+  },
+
+  epes: {
+    title: 'Truckload Services — Moving Freight Across the Region',
+    aside: [
+      { k: 'Your Role', v: 'Regional Operations Manager' },
+      { k: 'Fleet', v: '690 power units, 4,320 trailers' },
+      { k: 'Network', v: '6 terminals, 48-state authority' },
+      { k: 'Annual Miles', v: '62M+' },
+    ],
+    glossary: [
+      { term: 'Truckload (TL)', def: 'A single truck carrying one customer\'s freight from origin to destination.' },
+      { term: 'Deadhead', def: 'Miles driven with an empty trailer — pure cost, zero revenue.' },
+      { term: 'Drayage', def: 'Short-distance moves at ports — connecting ships to the inland freight network.' },
+      { term: 'Detention', def: 'Delay charges when a truck waits too long at a shipper or receiver.' },
+      { term: 'Rate Per Mile', def: 'The standard pricing unit for truckload freight. Driver cost + fuel + overhead ÷ miles.' },
+    ],
+    scenes: [
+      {
+        tag: 'Scene 1 · Load Planning',
+        title: 'Three loads are available. One truck.',
+        narrative: `It\'s Monday morning at your Charlotte terminal. You have <strong>one available driver (Driver #28)</strong> and three load opportunities on your board. The driver has 11 hours of drive time available. You need to maximize revenue while keeping the driver compliant and positioned well for tomorrow.\n\nChoose the load:`,
+        choices: [
+          { key: 'A', text: 'Load A: 480 miles, $2.45/mile, dry van, drops at Greensboro (near terminal)', sub: 'Short trip. Returns tonight. $1,176 revenue.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Load B: 620 miles, $2.80/mile, refrigerated, drops in Richmond (far from terminal)', sub: 'Higher revenue but deadhead risk tomorrow. $1,736 revenue.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Load C: 290 miles, $3.10/mile, oversized, drops in Charlotte (home terminal)', sub: 'Highest rate/mile. Short run. $899 revenue.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Network-smart decision.',  text: 'The driver completes the run, returns to Charlotte by 6 PM, and is pre-loaded for a 7 AM departure tomorrow. You capture $1,176 today AND position for a $1,400 load tomorrow with zero deadhead. Net 2-day revenue: $2,576.', lesson: 'In truckload, "positioning" matters as much as today\'s rate. A driver stranded in a low-freight market tomorrow costs more in deadhead miles than a higher rate today. Lane balance is a core planning discipline.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Higher revenue today, problem tomorrow.', text: 'The Richmond load pays $1,736. But the driver ends up in Richmond with no outbound freight available for tomorrow. 310 deadhead miles back to Charlotte cost $620. Net 2-day economics are actually worse than Option A.', lesson: 'Deadhead miles (empty driving) are the hidden cost of poor load planning. At ~$2/mile in operating cost, 300 empty miles costs $600. Truckload economics always require a 2-day view, not just today\'s load.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Good rate, small load, limited upside.', text: 'The 290-mile run at $3.10/mile generates $899. The driver is back in 4 hours and available for an afternoon load — you find a $940 load to Hampton. Total day: $1,839. Solid, but not as strong as the network play in Option A.', lesson: 'Rate per mile is not the only metric. Total revenue per day depends on miles driven, not just rate. Short high-rate loads often underperform longer moderate-rate loads in total daily revenue.' }
+        }
+      },
+      {
+        tag: 'Scene 2 · Fuel & Cost Management',
+        title: 'Fuel costs just jumped 18 cents/gallon.',
+        narrative: `Diesel prices spiked overnight — your fuel cost just went from $3.82 to $4.00/gallon. Across your terminal\'s 690 trucks averaging 6.5 mpg over 62M annual miles, that\'s a <strong>significant cost impact</strong>.\n\nYou have a fuel cost recovery mechanism in your customer contracts called a "fuel peg" (surcharge table). But one major customer is pushing back, claiming the market move doesn\'t justify the surcharge increase. How do you handle it?`,
+        choices: [
+          { key: 'A', text: 'Apply the contracted fuel surcharge — it exists for exactly this reason', sub: 'Protects margin. Contractually defensible.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Negotiate a split — absorb half the increase, pass half to the customer', sub: 'Relationship-first approach. Costs you money.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Absorb the entire increase to protect the relationship', sub: 'Maximum goodwill. Maximum cost exposure.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Contract enforced. Margin protected.', text: 'You apply the fuel surcharge per the contract. The customer\'s logistics director understands — fuel pegs are industry standard and the contract is clear. Your terminal\'s fuel cost impact is fully offset. You do take 15 minutes to walk the customer through the surcharge table so they understand the mechanism.', lesson: 'Fuel surcharge tables (fuel pegs) are standard in truckload contracts specifically to protect carriers from diesel price volatility. Without them, a single fuel spike can turn a profitable quarter negative. Enforcing contractual terms is sound business.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Relationship preserved, at a cost.', text: 'The customer appreciates the gesture. You absorb $0.09/gallon = ~$86K annually across the terminal. Your operations director flags the margin impact in the monthly review. You\'ve created a precedent that may be hard to undo at the next fuel event.', lesson: 'Absorbing cost increases to maintain relationships is sometimes appropriate — but set expectations that it\'s a one-time accommodation, not a structural change. Precedents in logistics contracts are hard to unwind.' },
+          C: { icon: '❌', type: 'bad', title: 'Margin erosion compounds.',  text: 'You absorb the full $0.18/gallon. Annual impact: $171K at the terminal level. The customer doesn\'t reciprocate with additional volume. At your next contract renewal, they use the precedent to push for permanent rate reductions. A single goodwill gesture becomes a structural cost problem.', lesson: 'Full absorption of market-driven cost increases is rarely sustainable. Fuel pegs, rate escalators, and surcharge tables exist because logistics margins are thin — typically 2-5%. A single unrecovered cost spike can consume the entire margin.' }
+        }
+      },
+      {
+        tag: 'Scene 3 · Drayage Operations',
+        title: 'A container is stuck at the port.',
+        narrative: `You operate drayage services out of the Port of Savannah — one of the busiest container ports in the US. A <strong>40-foot container of automotive parts</strong> has been sitting on the port for 3 days past its free time. Each additional day costs your customer $350 in demurrage (port detention fees).\n\nThe delay is due to a chassis shortage — no chassis available to put the container on for outbound movement. What\'s your plan?`,
+        choices: [
+          { key: 'A', text: 'Rent chassis from the port\'s chassis pool — immediate availability', sub: '$185/day but container moves today. Stops demurrage.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Wait for your own chassis to return from a previous drop — arrives tomorrow', sub: 'No rental cost. But one more day of $350 demurrage.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Escalate to customer — have them authorize a premium transload option', sub: 'Moves freight off chassis requirement entirely. Complex.', risk: 'med', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Container moves. Demurrage stops.',  text: 'You rent a chassis at $185/day. The container moves same day. You avoid $350/day in demurrage. Net cost: $185 instead of $350+ additional. The automotive customer avoids a production line risk.', lesson: 'Port drayage economics require rapid decision-making. Demurrage (port charges for excess container dwell time) compounds daily. A $185 chassis rental that avoids $350 demurrage is always the right call — the math is simple.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Saved $185 today, cost $350 tomorrow.',  text: 'Your chassis returns tomorrow. The container moves. But you\'ve incurred one more day of demurrage ($350) to save a $185 rental. Net cost: $165 more than Option A. And the customer gets the container one day later.', lesson: 'Port operations require cost-of-delay thinking. The question isn\'t "what is the cheapest option today?" but "what is the cheapest outcome including delay costs?" Demurrage math almost always favors immediate chassis rental.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Creative solution, complex execution.',  text: 'You transload the container contents into a dry van trailer (no chassis required). The goods move in 4 hours — but the transload labor costs $820 and you\'ve disrupted the packaging seal. The automotive customer accepts but notes the exception.', lesson: 'Transloading (moving goods from one container/trailer type to another) is a legitimate logistics tool, but it adds handling, cost, and exception risk. It\'s the right call when chassis supply is truly exhausted — not as a first option.' }
+        }
+      },
+      {
+        tag: 'Scene 4 · Backhaul Revenue',
+        title: 'How do you fill 180 empty return miles?',
+        narrative: `Twelve of your drivers completed outbound deliveries in Hampton, VA this afternoon. They\'re all returning to the Charlotte terminal — <strong>180 miles, empty trailers</strong>. Your backhaul coordinator has three options:\n\n- Option A: A lumber load from a mill 20 miles off the I-85 corridor, pays $2,200\n- Option B: A small furniture company load, 45 miles off-route, pays $3,100\n- Option C: Two partial loads (LTL consolidation), on-route, combined $1,600\n\nWhich backhaul program do you activate?`,
+        choices: [
+          { key: 'A', text: 'Lumber load — 20 miles off-route, $2,200 gross', sub: 'Clean drop & hook. Minimal deviation. Fast.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Furniture load — 45 miles off-route, $3,100 gross', sub: 'Higher revenue but significant deviation cost.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'LTL consolidation — on-route, $1,600 gross combined', sub: 'No deviation. But live load/unload adds 2 hours.', risk: 'low', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Best net economics.',  text: 'The 20-mile deviation costs ~$40 in incremental fuel and 30 minutes of driver time. Net revenue after deviation cost: $2,160. All 12 drivers complete the run and are home by 7 PM. This is exactly the backhaul model that generates $16.3M annually.', lesson: 'Net revenue (gross minus deviation cost) is the right backhaul metric, not gross. A 20-mile detour at $2/mile costs $40. The $2,200 load generates $2,160 net. Quick math that every dispatcher should run automatically.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Higher gross, lower net.',  text: 'The 45-mile each-way deviation costs $180 in fuel and 90 minutes per driver. Net revenue: $2,920. Slightly better than Option A in gross, but drivers arrive home 90 minutes later — and the 12-driver team collectively loses 18 man-hours.', lesson: 'Revenue optimization in backhaul requires total cost accounting. Driver time, fuel for deviation, and HOS impact all factor into the true economics. The "highest paying load" is rarely the most profitable.' },
+          C: { icon: '⚠️', type: 'ok', title: 'On-route but operationally heavy.',  text: 'Two live load/unload stops add 2 hours total. Drivers arrive home at 9 PM. The $1,600 gross is weaker than both alternatives, and the live load requirement carries detention risk (if the shippers are slow).', lesson: 'Drop & hook backhauling (swap trailers, no waiting) is operationally superior to live load/unload. When evaluating backhaul opportunities, always check whether it\'s pre-loaded or requires a live appointment — the difference in efficiency is significant.' }
+        }
+      },
+      {
+        tag: 'Scene 5 · Driver Safety',
+        title: 'A driver is approaching HOS limit on a key load.',
+        narrative: `Driver #54 is 40 miles from the delivery point with a time-sensitive load of fresh produce. She has <strong>45 minutes of drive time remaining under Hours of Service (HOS) regulations</strong>. Under normal conditions, the 40-mile run takes 38-42 minutes — right at the edge.\n\nThe customer has a <strong>hard delivery window</strong> (produce goes to waste if it misses the receiving dock by 4 PM). It\'s 3:22 PM. What do you do?`,
+        choices: [
+          { key: 'A', text: 'Authorize her to attempt the delivery — she\'ll likely make it', sub: 'HOS violation risk if there\'s any traffic. Federal penalty: $16,000+.', risk: 'high', outcome: 'bad' },
+          { key: 'B', text: 'Pull the driver now — find a relay driver or broker a local carrier for the final 40 miles', sub: '30-minute setup time. Load likely makes the window.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Notify the customer immediately and request a 1-hour window extension', sub: 'Honest and fast. Customer may or may not accommodate.', risk: 'med', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '❌', type: 'bad', title: 'HOS violation. Federal fine. Load at risk.', text: 'Driver hits a construction zone at mile 28. She\'s forced to pull over with 12 miles remaining. Federal fine: $16,000. The load misses the window. Produce spoils. Customer charge-back: $28,000. Total cost of the decision: $44,000+.', lesson: 'Hours of Service (HOS) are federal regulations — not suggestions. A single violation generates a $16,000+ fine AND creates an adverse FMCSA record that affects your safety score for 3 years. No delivery is worth an HOS violation.' },
+          B: { icon: '✅', type: 'good', title: 'Relay solution. Delivery made.',  text: 'TSS locates a pre-qualified local carrier 8 miles from Driver #54\'s location. They transfer the load in 22 minutes. The local carrier delivers at 3:58 PM — 2 minutes inside the window. Driver #54 takes her mandatory rest. No violation, no spoilage.', lesson: 'The relay/transfer solution is precisely what TSS (Transportation Support Services) exists to execute. 24/7 centralized support means this type of problem can be solved in minutes rather than hours.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Customer says yes. Barely.',  text: 'The customer grants a 45-minute extension. Driver #54 completes the delivery at 4:31 PM. However, the receiving crew is now on overtime, and the customer passes a $200 after-hours fee to you. The relationship is strained.', lesson: 'Requesting deadline extensions is appropriate when there\'s no better option — and honesty with customers about operational constraints builds long-term trust. But it\'s always second-best to having a relay or transfer capability.' }
+        }
+      },
+      {
+        tag: 'Scene 6 · Growth Decision',
+        title: 'A new customer wants your capacity. Do you take the business?',
+        narrative: `A major e-commerce retailer has approached you with an opportunity: <strong>120 loads per week, consistent lanes, Charlotte to Atlanta and Charlotte to Richmond</strong>. Current rate offer: $2.60/mile, blended.\n\nYour current fleet utilization is 87%. Accepting this business would push utilization to 96%+ and require hiring 14 new drivers. The opportunity is $18M annually. What do you decide?`,
+        choices: [
+          { key: 'A', text: 'Accept the full contract at $2.60/mile', sub: 'Full revenue capture. Tight operational margin.', risk: 'high', outcome: 'ok' },
+          { key: 'B', text: 'Counter at $2.85/mile — negotiate for better economics before committing', sub: 'Risk losing the deal, but better margin if successful.', risk: 'med', outcome: 'good' },
+          { key: 'C', text: 'Accept 60 loads/week now, with option to expand at 90 days', sub: 'Manageable ramp. Proves capability before full commitment.', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'Full revenue, thin margin.',  text: 'You sign the full contract. Driver hiring takes 90 days — during which you subcontract at $3.10/mile, creating losses on 40 loads/week for 3 months. Combined with high turnover in new driver cohorts, your first-year margin is 1.2% — barely profitable.', lesson: 'Rapid fleet expansion carries hidden costs: hiring and training time, temp coverage via third-party carriers, and new-driver learning curves. Revenue potential always looks better than realized economics in the first year.' },
+          B: { icon: '✅', type: 'good', title: 'Counter wins. Better economics secured.',  text: 'The customer counteroffer: $2.75/mile. You accept. At $2.75 vs. $2.60, you gain $0.15/mile × 1.8M annual miles = $270K in additional margin. The customer had room to negotiate — they were testing the market.', lesson: 'In logistics contracting, the first offer is rarely the best offer. Market data on comparable lanes, combined with clear cost modeling, is the basis for any counter. Carriers who know their cost structure negotiate from strength.' },
+          C: { icon: '✅', type: 'good', title: 'Disciplined ramp. Strong relationship.',  text: 'You start with 60 loads/week. Your 90-day performance: 98.4% on-time. The customer is delighted and exercises the expansion option at an improved rate of $2.72/mile. You\'ve earned the business through proof — not promises.', lesson: 'Phased ramp-ups reduce execution risk and give you 90 days to prove capability before full commitment. Customers who see strong early performance often reward it with rate improvements — and you avoid overextending your fleet.' }
+        }
+      }
+    ]
+  },
+
+  scm: {
+    title: 'Supply Chain Management — Orchestrating a Network',
+    aside: [
+      { k: 'Your Role', v: 'SCM Account Manager' },
+      { k: 'Freight Under Mgmt', v: '$6.3B' },
+      { k: 'Carrier Network', v: '18,000 qualified carriers' },
+      { k: 'Team', v: '2,000+ SCM experts' },
+    ],
+    glossary: [
+      { term: 'FUM', def: 'Freight Under Management — total dollar value of freight managed on behalf of customers.' },
+      { term: 'TMS', def: 'Transportation Management System — software that plans, executes, and optimizes freight moves.' },
+      { term: '4PL', def: 'Fourth-Party Logistics — managing multiple logistics providers on behalf of a single client.' },
+      { term: 'Tender Acceptance', def: 'The rate at which carriers accept loads offered to them via the TMS.' },
+      { term: 'Mode Selection', def: 'Choosing the right transportation type (TL, LTL, rail, air) for each shipment based on cost and service.' },
+    ],
+    scenes: [
+      {
+        tag: 'Scene 1 · Morning Operations',
+        title: 'The TMS shows 14 untendered loads.',
+        narrative: `You\'re managing transportation for a large manufacturer. It\'s 7 AM Monday. The TMS (Transportation Management System) shows <strong>14 loads that need carriers assigned by 10 AM</strong> for today\'s shipments. Three of your primary carriers have failed to accept their loads — a problem called "tender rejection."\n\nYour route guide has a waterfall: Primary → Secondary → Tertiary → Spot Market. What\'s your escalation strategy?`,
+        choices: [
+          { key: 'A', text: 'Immediately move to spot market for all 3 rejected loads', sub: 'Fastest resolution. Higher cost ($300-$800 premium each).', risk: 'med', outcome: 'ok' },
+          { key: 'B', text: 'Tender to secondary carriers first, then spot only if they decline', sub: 'Follow the route guide waterfall as designed.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Call the primary carriers to understand why they rejected — then decide', sub: 'Intelligence-gathering. Takes 30-60 minutes but may resolve faster.', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'Coverage achieved. Overpaid.',  text: 'All 3 loads covered. Spot premium: $1,400 total above contracted rates. The loads move. But your sourcing team flags the pattern — these 3 carriers have been rejecting loads for 2 weeks. This is a carrier performance issue that needs to be addressed at the root.', lesson: 'Going to spot market immediately is tactically correct for coverage, but it masks strategic problems. Carrier rejection patterns in the TMS are data — they tell you which lanes have capacity problems and which carriers are gaming their commitments.' },
+          B: { icon: '✅', type: 'good', title: 'Route guide followed. Good cost discipline.',  text: 'Secondary carriers accept 2 of 3 loads at contracted rates. One goes to spot at a $480 premium. Total excess cost: $480 vs. $1,400 in Option A. You\'ve saved $920 by following the designed waterfall process.', lesson: 'Route guide compliance is the financial discipline of SCM. Every carrier in the waterfall was selected for a reason — competitive rates and service levels. Skipping to spot immediately throws away that contracted capacity.' },
+          C: { icon: '✅', type: 'good', title: 'Root cause identified. Problem solved.', text: 'Quick calls reveal: two carriers have equipment sitting at your shipper\'s dock because they\'re waiting on empty returns. A 20-minute coordination call with your customer\'s dock scheduler frees the equipment. Two carriers re-accept. One goes to secondary. Total spot spend: $0.', lesson: 'Tender rejections are often symptoms of other problems: equipment stuck at docks, payment disputes, or communication gaps. Your Customer Service Associates are trained to investigate root causes before escalating to expensive spot coverage.' }
+        }
+      },
+      {
+        tag: 'Scene 2 · Analytics',
+        title: 'Your customer\'s freight spend is 12% over budget.',
+        narrative: `Quarterly business review prep. Your analytics team has flagged that the customer\'s freight spend is <strong>$2.4M over budget for Q2</strong> (12% variance). You need to identify root causes and present a remediation plan.\n\nYour Tableau dashboards show three contributing factors. Which do you address first?`,
+        choices: [
+          { key: 'A', text: 'Mode creep: 18% of TL loads could have been intermodal (30% cheaper)', sub: 'Systemic fix. Saves ~$800K annually if corrected.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Carrier rate inflation: 6 primary carriers increased rates mid-contract', sub: 'Contractual issue. Legal and negotiation path.', risk: 'med', outcome: 'good' },
+          { key: 'C', text: 'Accessorial charges spiked: detention and fuel surcharges up 40%', sub: 'Symptom of process problems (long dock wait times).', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Mode optimization: the highest-impact lever.',  text: 'Your engineering team runs a mode analysis: 847 loads per quarter could shift from TL to intermodal (rail + truck) at $280 savings per load. Annual impact: $950K. You present a phased lane-by-lane migration plan — priority goes to lanes with 5+ day transit flexibility.', lesson: 'Mode selection is one of the most powerful cost levers in SCM. Intermodal (combining rail and truck) typically costs 25-35% less than all-truck truckload for lanes over 750 miles. TMS data makes the opportunity instantly visible.' },
+          B: { icon: '✅', type: 'good', title: 'Carrier inflation challenged.', text: 'Your sourcing team reviews contracts. Three of the 6 rate increases are contractually unauthorized. You challenge them and receive $340K in credits. The other 3 reflect legitimate fuel and wage increases — you run a mini-bid on those lanes and save an additional $180K vs. the increases.', lesson: 'Financial controls in SCM include auditing carrier rates against contracts. Mid-contract rate increases are sometimes appropriate (fuel events) and sometimes opportunistic. Your sourcing team distinguishes between the two through contract review and market benchmarking.' },
+          C: { icon: '✅', type: 'good', title: 'Accessorial reduction: operational fix required.',  text: 'Detention analysis: your customer\'s three largest shippers average 2.4 hours of truck wait time — 1.4 hours above the 1-hour free period. Working with those shippers to improve dock scheduling reduces detention charges by $420K annually. The remaining $200K in fuel surcharges are market-driven and unavoidable.', lesson: 'Accessorial charges (detention, fuel, residential delivery) are the "hidden taxes" of logistics. They\'re often addressable through operational improvements at shipper/receiver locations. SCM\'s visibility tools make the root causes transparent.' }
+        }
+      },
+      {
+        tag: 'Scene 3 · Carrier Crisis',
+        title: 'Your largest carrier just filed for bankruptcy.',
+        narrative: `A Monday morning alert: <strong>FastFreight Carriers (your #2 provider, handling 14% of volume)</strong> has filed for Chapter 11 bankruptcy. They currently have 84 of your customer\'s loads in transit and are unlikely to complete new tenders.\n\nYou need to immediately secure capacity for 120 loads per week previously handled by FastFreight. What\'s your first move?`,
+        choices: [
+          { key: 'A', text: 'Activate your pre-qualified carrier pool — distribute loads to 4 backup carriers', sub: '18,000 pre-qualified carriers in network. Immediate tender capability.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Run an emergency mini-bid — invite 20 carriers to compete on the lanes', sub: 'Best economics but 48-72 hour process. Coverage gap risk.', risk: 'med', outcome: 'ok' },
+          { key: 'C', text: 'Route everything through your brokerage desk temporarily', sub: 'Instant coverage. Spot rates 20-35% above contract.', risk: 'med', outcome: 'ok' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Network resilience demonstrated.',  text: 'Within 4 hours, 4 pre-qualified carriers are activated and accepting loads. Coverage is maintained at 100%. 84 in-transit loads are tracked through FastFreight\'s terminal contacts and recovered within 48 hours. Customer never sees a service disruption.', lesson: 'The value of a 18,000-carrier pre-qualified network becomes clearest in a crisis. Every carrier is already vetted for insurance, safety ratings, and operating authority — activation is hours, not days. This is the resilience that SCM customers pay for.' },
+          B: { icon: '⚠️', type: 'ok', title: 'Better long-term rates, short-term gap.',  text: 'The mini-bid takes 60 hours. During that window, 38 loads go uncovered and you resort to spot market at +$280/load = $10,640 premium. The bid results in better rates than Option A (8% below previous contract). Net: slightly worse in the short term, better long-term.', lesson: 'Emergency mini-bids are a powerful sourcing tool but require a coverage bridge during execution. In a crisis, speed of coverage is paramount — use brokerage or pre-qualified carriers as a bridge while running the bid.' },
+          C: { icon: '⚠️', type: 'ok', title: 'Covered, but expensive.',  text: 'All loads covered through brokerage at spot rates averaging 28% above contract. 6-week exposure until new contract rates are in place: $186K in excess spend. The customer accepts it as a force majeure event but expects a full recovery plan within 30 days.', lesson: 'Brokerage as a crisis tool provides speed at a cost. Document the cost delta, communicate proactively to customers, and present a structured carrier recovery plan with timelines. Transparency in a crisis builds more trust than silence.' }
+        }
+      },
+      {
+        tag: 'Scene 4 · Network Engineering',
+        title: 'Should you add a cross-dock facility?',
+        narrative: `Your engineering team has completed a <strong>network design study</strong> for a consumer products customer. The data shows that adding a cross-dock facility in Indianapolis would reduce total network cost by 8.2% annually ($1.4M savings).\n\nThe customer\'s CFO is interested but wants to understand the risks. How do you build the business case?`,
+        choices: [
+          { key: 'A', text: 'Lead with the ROI — $1.4M savings clearly justifies the $400K setup cost', sub: '3.4 month payback period. Strong financial case.', risk: 'low', outcome: 'ok' },
+          { key: 'B', text: 'Present ROI + service impact analysis (transit times, service level changes)', sub: 'Comprehensive business case. Addresses CFO and ops concerns.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Propose a 90-day pilot on the 3 highest-volume lanes before full commitment', sub: 'Reduces risk. Proves the model before full investment.', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '⚠️', type: 'ok', title: 'Financial case accepted, operations team raises flags.',  text: 'The CFO approves. But the VP of Operations wasn\'t consulted — she has concerns about transit time changes for 6 key customers. Implementation begins and 2 service disruptions occur in week 3 as transit patterns shift. The financial savings are real but the launch is rocky.', lesson: 'Cross-functional alignment is non-negotiable for network changes. A financially sound decision that disrupts service metrics generates political and contractual problems that erase financial gains. Always model service impact alongside cost.' },
+          B: { icon: '✅', type: 'good', title: 'Comprehensive case. Smooth approval.',  text: 'You present: $1.4M annual savings, transit time analysis (11 of 14 lanes improve by 0.5 days, 3 lanes add 0.3 days), and a change management plan. Both the CFO and VP of Operations approve. Implementation is sequenced to protect the 3 customers where transit worsens.', lesson: 'Best-in-class network engineering presents the full picture: cost, service, and implementation risk. The 150+ supply chain engineers in SCM run these comprehensive models because customers need to understand tradeoffs, not just savings.' },
+          C: { icon: '✅', type: 'good', title: 'Pilot proves the model. Confidence for scale.',  text: 'The 3-lane pilot runs for 90 days. Actual cost savings: 9.1% (better than model). Transit times improve as projected. The full rollout is approved with high confidence. The customer signs a 3-year extension.', lesson: 'Piloting before scaling is the hallmark of disciplined network engineering. Data from real-world operations validates the model and surfaces edge cases the analysis missed. Customers who see proven results approve faster and commit longer.' }
+        }
+      },
+      {
+        tag: 'Scene 5 · International',
+        title: 'A port strike threatens your ocean freight.',
+        narrative: `You manage international freight for a customer who imports components from Asia. A <strong>port labor strike at Los Angeles and Long Beach</strong> is expected to last 10-14 days, starting in 3 days. You have 6 containers of critical components on vessels due to arrive during the strike window.\n\nWhat\'s your contingency plan?`,
+        choices: [
+          { key: 'A', text: 'Reroute containers to the Port of Seattle — 3 additional days transit, no strike impact', sub: '$480/container premium. Clean solution.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Air freight the most critical 2 containers (highest value components)', sub: '$18,000 additional cost. Immediate delivery. Overkill for less critical goods.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Wait and see — strikes often settle faster than expected', sub: 'No immediate cost. High risk if strike lasts the full 14 days.', risk: 'high', outcome: 'bad' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Proactive reroute. Clean continuity.',  text: 'All 6 containers reroute to Seattle. They arrive 3 days later than original plan but before the customer\'s critical inventory level. Total extra cost: $2,880. The strike lasts 11 days. Competitors who waited scramble for chassis and rail capacity out of a congested Seattle — you already have it booked.', lesson: 'Supply chain risk management is about acting before the crisis peaks, not during it. 3 days of advance notice allowed a clean reroute. Waiting until the strike begins means competing for limited alternative capacity with every other importer.' },
+          B: { icon: '✅', type: 'good', title: 'Tiered response: smart prioritization.',  text: 'You airfreight containers 1 and 2 (value: $2.1M, delivery critical). Containers 3-6 reroute to Seattle. Total extra cost: $20,880. The customer\'s production line never stops. The airfreight cost is 1.4% of the component value at risk — well within the insurance math.', lesson: 'Not all cargo is equal. Tiered risk responses (air for critical, alternate port for the rest) optimize cost against risk. The key is knowing which SKUs are production-critical — which requires the kind of deep customer knowledge that SCM teams develop over time.' },
+          C: { icon: '❌', type: 'bad', title: 'Strike lasts 11 days. Crisis mode.',  text: 'The strike runs 11 days. All 6 containers are stuck at anchor. You scramble for spot air freight — 10-day delay means it\'s too late to prevent production impact. Air freight cost: $47,000 emergency premium. Customer production line halts for 3 days. Customer penalty clause: $120,000.', lesson: 'Supply chain disruptions rarely self-resolve quickly. "Wait and see" is never a resilience strategy. SCM\'s value is proactive monitoring (weather, labor, port congestion) and fast scenario planning before the window for cheap solutions closes.' }
+        }
+      },
+      {
+        tag: 'Scene 6 · Value Review',
+        title: 'The customer is questioning whether to bring SCM in-house.',
+        narrative: `Your largest customer\'s new CFO is conducting a "make vs. buy" analysis. He\'s arguing that the customer could hire <strong>15 internal logistics staff</strong> and manage transportation themselves, saving the management fee.\n\nYou have 30 minutes in a boardroom to make the case for the SCM partnership. What\'s your primary argument?`,
+        choices: [
+          { key: 'A', text: 'Lead with cost data: net savings delivered exceed the management fee by 3:1', sub: '5% annual savings on $200M FUM = $10M. Fee: $3.2M. Net: $6.8M.', risk: 'low', outcome: 'good' },
+          { key: 'B', text: 'Lead with capability: 2,000 experts, 18,000 carriers, $6B network buying power', sub: 'Capability argument: impossible to replicate internally.', risk: 'low', outcome: 'good' },
+          { key: 'C', text: 'Lead with risk: carrier failures, port strikes, HOS compliance — all our problem, not theirs', sub: 'Risk transfer argument. Hard to quantify but compelling.', risk: 'low', outcome: 'good' },
+        ],
+        outcomes: {
+          A: { icon: '✅', type: 'good', title: 'Financial case wins the CFO.',  text: 'The CFO responds to numbers. You show: 3-year total savings of $30M vs. management fees of $9.6M. Net value creation: $20.4M. Even accounting for the 15 internal hires ($2.4M annually in salary + benefits + infrastructure), the partnership delivers $17M more in value. Contract renewed for 3 years.', lesson: 'CFOs think in ROI. The 5% average annual savings on FUM is the SCM value proposition in a single number. For a $200M freight spend, 5% = $10M — which typically exceeds the management fee by 2-3x. Lead with the math.' },
+          B: { icon: '✅', type: 'good', title: 'Capability gap is undeniable.',  text: 'You walk the CFO through what "in-house" really means: hiring 15 people takes 6-12 months; building carrier relationships takes 3-5 years; replicating TMS capability costs $8M in software alone. The network buying power (volume discounts from $6B in FUM) is structurally irreplaceable. The CFO withdraws the proposal.', lesson: 'The SCM value proposition isn\'t just service delivery — it\'s access to a network and technology infrastructure that would cost 10x more to build than to buy. Scale and network effects are real competitive moats.' },
+          C: { icon: '✅', type: 'good', title: 'Risk transfer resonates with the board.',  text: 'You walk through three scenarios: a carrier bankruptcy (FastFreight), a port strike, and a regulatory compliance failure. In each case, the operational, financial, and reputational risk sits with you — not the customer. The board\'s general counsel is particularly moved. The contract is renewed.', lesson: 'Risk transfer is one of the most underappreciated aspects of outsourced logistics. Carrier failures, regulatory exposure, capacity crises — when these happen, a 4PL absorbs the operational and financial impact so customers can focus on their core business.' }
+        }
+      }
+    ]
+  }
+
+};
+
+// ════════════════════════════════════════════════
+// GLOBAL GLOSSARY
+// ════════════════════════════════════════════════
+const GLOSSARY = [
+  { term: 'Dedicated Contract Carriage (DCC)', def: 'A service where a logistics provider supplies trucks and drivers that work exclusively for one customer\'s business, under that customer\'s brand.' },
+  { term: 'Distribution Center (DC)', def: 'A warehouse facility that receives goods in bulk, stores them, and then ships them to stores or customers in smaller quantities.' },
+  { term: 'Truckload (TL)', def: 'A shipment that fills an entire trailer — one load, one carrier, origin to destination.' },
+  { term: 'LTL (Less-Than-Truckload)', def: 'Smaller shipments that don\'t fill a full trailer, combined with other customers\' freight to share the truck and cost.' },
+  { term: 'Supply Chain Management (SCM)', def: 'End-to-end orchestration of freight — planning, carrier selection, execution, visibility, analytics, and continuous improvement — on behalf of a customer.' },
+  { term: 'Freight Under Management (FUM)', def: 'The total dollar value of freight that a logistics provider manages on behalf of all its customers.' },
+  { term: 'TMS (Transportation Management System)', def: 'Software that plans, executes, and optimizes freight shipments — from order receipt to carrier payment.' },
+  { term: 'WMS (Warehouse Management System)', def: 'Software that directs all movement of goods within a distribution center — receiving, put-away, picking, packing, shipping.' },
+  { term: 'OTIF (On Time In Full)', def: 'The gold-standard delivery metric: did the right product arrive, on time, in full quantity? Common target: 98%+.' },
+  { term: 'Hours of Service (HOS)', def: 'Federal regulations (FMCSA) that limit how many hours truck drivers can drive in a day and week — for safety.' },
+  { term: 'Backhaul', def: 'Using a truck\'s return trip to carry revenue-generating freight, turning empty miles into profit.' },
+  { term: 'Deadhead Miles', def: 'Miles driven with an empty trailer — cost with no revenue. The enemy of fleet efficiency.' },
+  { term: 'Drayage', def: 'Short-distance freight movement — typically moving containers from a port to a nearby warehouse or rail terminal.' },
+  { term: 'Intermodal', def: 'Freight that moves via two or more modes — typically rail + truck. Usually 25-35% cheaper than all-truck for long hauls.' },
+  { term: 'Detention / Demurrage', def: 'Charges assessed when a truck waits too long at a shipper or receiver (detention) or a container sits too long at a port (demurrage).' },
+  { term: 'Hub & Spoke', def: 'A network where trucks run between regional relay hubs, allowing long-distance freight movement with single, local drivers.' },
+  { term: '4PL (Fourth-Party Logistics)', def: 'A logistics provider that manages multiple logistics providers on behalf of a single customer — the orchestrator of orchestrators.' },
+  { term: 'Route Guide', def: 'A pre-negotiated list of preferred carriers for each lane, with a waterfall order: primary → secondary → tertiary → spot.' },
+  { term: 'Cycle Count', def: 'Ongoing physical inventory checks (a percentage of inventory daily) to maintain accuracy without a disruptive annual full count.' },
+  { term: 'ClearChain®', def: 'Proprietary technology platform that provides end-to-end supply chain visibility — fleet tracking, warehouse operations, and analytics.' },
+];
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let currentProduct = null;
+let currentSim = null;
+let currentScene = 0;
+let selectedChoice = null;
+let choicesLocked = false;
+let scores = [];
+let simOutcomes = [];
+
+// ════════════════════════════════════════════════
+// SCREEN NAVIGATION
+// ════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).scrollTop = 0;
+}
+
+function setBreadcrumb(parts) {
+  const bc = document.getElementById('nav-breadcrumb');
+  if (!parts.length) { bc.innerHTML = ''; return; }
+  bc.innerHTML = parts.map((p, i) =>
+    i < parts.length - 1
+      ? `<span>${p}</span><span class="sep">›</span>`
+      : `<span class="current">${p}</span>`
+  ).join('');
+}
+
+// ════════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════════
+function goHome() {
+  showScreen('home');
+  setBreadcrumb([]);
+}
+
+function renderHome() {
+  const grid = document.getElementById('product-grid');
+  grid.innerHTML = PRODUCTS.map(p => `
+    <div class="product-card" style="--accent:${p.accent};--accent-dim:${p.accentDim};--accent-bg:${p.accentBg}"
+         onclick="openProduct('${p.id}')">
+      <div class="card-icon">${p.icon}</div>
+      <div class="card-tag">${p.tag}</div>
+      <h3>${p.name}</h3>
+      <p>${p.cardDesc}</p>
+      <div class="card-footer">
+        <div class="card-cta">Explore <span>→</span></div>
+        <div class="card-badge">${SIMULATIONS[p.simulation].scenes.length} scenarios</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// PRODUCT PAGE
+// ════════════════════════════════════════════════
+function openProduct(id) {
+  currentProduct = PRODUCTS.find(p => p.id === id);
+  const p = currentProduct;
+
+  // Apply accent CSS vars
+  const root = document.documentElement;
+  root.style.setProperty('--accent', p.accent);
+  root.style.setProperty('--accent-dim', p.accentDim);
+  root.style.setProperty('--accent-bg', p.accentBg);
+  root.style.setProperty('--accent-bg2', p.accentBg2);
+
+  // Hero
+  document.getElementById('product-hero').style.setProperty('--hero-bg', p.heroBg);
+  document.getElementById('product-tag').innerHTML = `${p.icon} ${p.tag}`;
+  document.getElementById('product-title').textContent = p.name;
+  document.getElementById('product-subtitle').textContent = p.heroSubtitle;
+
+  // Overview
+  document.getElementById('po-heading').textContent = p.overviewHeading;
+  document.getElementById('po-body').textContent = p.overviewBody;
+  document.getElementById('po-points').innerHTML = p.keyPoints
+    .map(pt => `<li><div class="dot"></div><span>${pt}</span></li>`).join('');
+
+  // Stats
+  document.getElementById('stat-grid').innerHTML = p.stats
+    .map(s => `<div class="stat-card"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+
+  // Industries
+  document.getElementById('industries-list').innerHTML = `
+    <h4>Industries Served</h4>
+    <div class="industry-tags">${p.industries.map(i => `<div class="industry-tag">${i}</div>`).join('')}</div>`;
+
+  setBreadcrumb([p.name]);
+  showScreen('product-page');
+}
+
+// ════════════════════════════════════════════════
+// SIMULATION
+// ════════════════════════════════════════════════
+function startSim() {
+  currentSim = SIMULATIONS[currentProduct.simulation];
+  currentScene = 0;
+  selectedChoice = null;
+  choicesLocked = false;
+  scores = [];
+  simOutcomes = [];
+
+  document.getElementById('sim-title').textContent = currentProduct.name;
+
+  // Aside stats
+  document.getElementById('aside-stats').innerHTML = currentSim.aside
+    .map(s => `<div class="aside-stat"><div class="k">${s.k}</div><div class="v">${s.v}</div></div>`).join('');
+
+  // Aside glossary
+  document.getElementById('aside-glossary').innerHTML = currentSim.glossary
+    .map(g => `<div class="glossary-term"><div class="term">${g.term}</div><div class="def">${g.def}</div></div>`).join('');
+
+  setBreadcrumb([currentProduct.name, 'Simulation']);
+  showScreen('sim-screen');
+  renderScene();
+}
+
+function exitSim() {
+  openProduct(currentProduct.id);
+}
+
+function renderScene() {
+  const scene = currentSim.scenes[currentScene];
+  const total = currentSim.scenes.length;
+
+  // Progress
+  const pct = (currentScene / total) * 100;
+  document.getElementById('sim-progress-fill').style.width = pct + '%';
+  document.getElementById('sim-step-label').textContent = `Scene ${currentScene + 1} of ${total}`;
+
+  // Scene content
+  document.getElementById('scene-tag').textContent = scene.tag;
+  document.getElementById('scene-title').textContent = scene.title;
+  document.getElementById('scene-narrative').innerHTML = scene.narrative.replace(/\n/g, '<br>');
+
+  // Reset state
+  selectedChoice = null;
+  choicesLocked = false;
+  document.getElementById('outcome-card').classList.remove('show');
+  document.getElementById('btn-confirm').disabled = true;
+  document.getElementById('btn-confirm').style.display = 'block';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-finish').style.display = 'none';
+
+  // Choices
+  const riskMap = { low: 'risk-low', med: 'risk-med', high: 'risk-high' };
+  const riskLabel = { low: 'Lower Risk', med: 'Moderate Risk', high: 'Higher Risk' };
+  document.getElementById('choices-container').innerHTML = scene.choices.map((ch, i) => `
+    <button class="choice-btn" onclick="selectChoice('${ch.key}')" id="choice-${ch.key}">
+      <div class="choice-key">${ch.key}</div>
+      <div class="choice-text">
+        <strong>${ch.text}</strong>
+        <span>${ch.sub}</span>
+      </div>
+      <div class="choice-risk ${riskMap[ch.risk]}">${riskLabel[ch.risk]}</div>
+    </button>
+  `).join('');
+
+  // Scroll top
+  document.getElementById('sim-screen').scrollTop = 0;
+  document.querySelector('.sim-main').scrollTop = 0;
+}
+
+function selectChoice(key) {
+  if (choicesLocked) return;
+  selectedChoice = key;
+  document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById(`choice-${key}`).classList.add('selected');
+  document.getElementById('btn-confirm').disabled = false;
+}
+
+function confirmChoice() {
+  if (!selectedChoice || choicesLocked) return;
+  choicesLocked = true;
+
+  const scene = currentSim.scenes[currentScene];
+  const outcome = scene.outcomes[selectedChoice];
+  const choiceData = scene.choices.find(c => c.key === selectedChoice);
+
+  // Track scores
+  const scoreMap = { good: 2, ok: 1, bad: 0 };
+  scores.push(scoreMap[outcome.type]);
+  simOutcomes.push({ scene: scene.tag, choice: choiceData.text, outcome: outcome.type, lesson: outcome.lesson });
+
+  // Dim unchosen choices
+  document.querySelectorAll('.choice-btn').forEach(b => {
+    if (!b.classList.contains('selected')) {
+      b.style.opacity = '0.4';
+    }
+  });
+
+  // Show outcome
+  const card = document.getElementById('outcome-card');
+  document.getElementById('outcome-icon').textContent = outcome.icon;
+  const titleEl = document.getElementById('outcome-title');
+  titleEl.textContent = outcome.title;
+  titleEl.className = 'outcome-title ' + outcome.type;
+  document.getElementById('outcome-text').textContent = outcome.text;
+  document.getElementById('outcome-lesson').textContent = outcome.lesson;
+  card.classList.add('show');
+
+  // Show next/finish button
+  document.getElementById('btn-confirm').style.display = 'none';
+  const isLast = currentScene >= currentSim.scenes.length - 1;
+  if (isLast) {
+    document.getElementById('btn-finish').style.display = 'block';
+  } else {
+    document.getElementById('btn-next').style.display = 'block';
+  }
+
+  // Scroll to outcome
+  setTimeout(() => {
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function nextScene() {
+  currentScene++;
+  renderScene();
+  document.querySelector('.sim-main').scrollTop = 0;
+}
+
+function finishSim() {
+  showScreen('recap-screen');
+  renderRecap();
+}
+
+// ════════════════════════════════════════════════
+// RECAP
+// ════════════════════════════════════════════════
+function renderRecap() {
+  const total = scores.length;
+  const sum = scores.reduce((a, b) => a + b, 0);
+  const maxScore = total * 2;
+  const pct = Math.round((sum / maxScore) * 100);
+  const goodCount = simOutcomes.filter(o => o.outcome === 'good').length;
+  const okCount = simOutcomes.filter(o => o.outcome === 'ok').length;
+  const badCount = simOutcomes.filter(o => o.outcome === 'bad').length;
+
+  let grade, icon, msg;
+  if (pct >= 80) { grade = 'Expert'; icon = '🏆'; msg = 'Outstanding leadership instincts. You nailed the complex tradeoffs.'; }
+  else if (pct >= 60) { grade = 'Practitioner'; icon = '⭐'; msg = 'Solid grasp of the business. A few scenarios to revisit.'; }
+  else { grade = 'Learner'; icon = '📚'; msg = 'Great start. The key is understanding the "why" behind each decision.'; }
+
+  document.getElementById('recap-icon').textContent = icon;
+  document.getElementById('recap-title').textContent = `${grade} — ${pct}% Score`;
+  document.getElementById('recap-subtitle').textContent = msg;
+
+  document.getElementById('recap-scores').innerHTML = `
+    <div class="recap-score" style="--accent:${currentProduct.accent}">
+      <div class="val" style="color:${currentProduct.accent}">${goodCount}</div>
+      <div class="lbl">Best Decisions</div>
+    </div>
+    <div class="recap-score">
+      <div class="val" style="color:var(--amber)">${okCount}</div>
+      <div class="lbl">Acceptable Calls</div>
+    </div>
+    <div class="recap-score">
+      <div class="val" style="color:#f06060">${badCount}</div>
+      <div class="lbl">Costly Mistakes</div>
+    </div>
+  `;
+
+  // Key lessons from bad/ok outcomes
+  const lessons = simOutcomes
+    .filter(o => o.outcome !== 'good')
+    .slice(0, 4)
+    .map(o => `<li><strong>${o.scene.split('·')[1]?.trim() || o.scene}:</strong> ${o.lesson}</li>`);
+
+  if (lessons.length === 0) {
+    lessons.push('<li>Perfect run! You made the optimal decision in every scenario.</li>');
+  }
+
+  document.getElementById('recap-takeaways').innerHTML = lessons.join('');
+
+  // Next product button
+  const idx = PRODUCTS.findIndex(p => p.id === currentProduct.id);
+  const next = PRODUCTS[(idx + 1) % PRODUCTS.length];
+  const btn = document.getElementById('recap-next-btn');
+  if (next.id !== currentProduct.id) {
+    btn.textContent = `Next: ${next.shortName} →`;
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+
+  setBreadcrumb([currentProduct.name, 'Simulation', 'Results']);
+}
+
+function replaySim() { startSim(); }
+
+function goNextProduct() {
+  const idx = PRODUCTS.findIndex(p => p.id === currentProduct.id);
+  const next = PRODUCTS[(idx + 1) % PRODUCTS.length];
+  openProduct(next.id);
+}
+
+// ════════════════════════════════════════════════
+// GLOSSARY MODAL
+// ════════════════════════════════════════════════
+function openGlossary() {
+  const list = document.getElementById('glossary-list');
+  list.innerHTML = GLOSSARY.map(g => `
+    <div class="glos-item">
+      <dt>${g.term}</dt>
+      <dd>${g.def}</dd>
+    </div>
+  `).join('');
+  document.getElementById('glossary-modal').classList.add('open');
+}
+function closeGlossary() {
+  document.getElementById('glossary-modal').classList.remove('open');
+}
+function closeGlossaryIfBg(e) {
+  if (e.target === document.getElementById('glossary-modal')) closeGlossary();
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>
